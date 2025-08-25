@@ -1,0 +1,620 @@
+---
+title: "Detecting dispersion problems in GLMMs" 
+#subtitle: "model diagnostics and validation with `DHARMa`"
+title-slide-attributes:
+    data-background-image: images/background.png
+author:
+  - name: Melina de Souza Leite
+    id: Post Doc
+    email: melina.souza-leite@ur.de
+    affiliation: 
+      - name: Postodoctoral Researcher
+        url: www.melinaleite.weebly.com
+      - name: University of Regensburg
+        url: https://www.uni-regensburg.de/biologie-vorklinische-medizin/forschen/arbeitsgruppen/ag-hartig
+# format:
+#   html:
+#     toc: true
+#     embed-resources: true
+format:
+  revealjs:
+    slide-number: true
+editor: 
+  markdown: 
+    wrap: 80
+---
+
+```{r, echo=F, warning=F, message=F}
+knitr::opts_chunk$set(cache = T, fig.align = 'center', echo = F, 
+                      warning = F, message = F,
+                      fig.height = 4, fig.width = 4)
+library(knitr)
+library(tidyverse)
+library(cowplot)
+library(DHARMa)
+library(glmmTMB)
+library(ggeffects)
+theme_set(theme_cowplot() + theme(panel.background = element_rect(color="black")))
+```
+
+## Intro
+
+## Residual diagnostics in GLMM
+
+-   DHARMa approach
+
+## Goals {.smaller}
+
+Provide tools for ecologists to better detect and solve the many dispersion
+problems that may arrise in GLMMs:
+
+-   Heteroscedasticity
+
+-   Zero-inflation
+
+-   "Real" overdispersion
+
+::: aside
+Examples will be.  using `DHARMa`, `glmmTMB`, and `ggeffects` packages.
+:::
+
+## What is the problem? {.smaller}
+
+Which diagnostic is for: **zero-inflation**, **"real" overdispersion**,
+**heteroscedasticity**?
+
+:::::: columns
+::: {.column width="34%"}
+```{r, fig.height=3,fig.width=3}
+par(mar=c(2,2,2,1))
+set.seed(5) 
+heteroData = createData(sampleSize = 500, intercept = 0.5,  
+                      overdispersion = function(x){
+                        return(rnorm(length(x), sd = 0.45 * abs(x)))}, 
+                      family = poisson(), randomEffectVariance = 0.01)
+# 
+# ggplot(heteroData, aes(x=Environment1, y=observedResponse))+
+#   geom_point() +
+#   geom_smooth(method="glm", method.args = list(family="poisson"))
+
+heteroModel <- glmmTMB(observedResponse ~ Environment1 + (1|group), 
+                       family = "poisson", data = heteroData)
+# summary(heteroModel)
+
+# unconditional sim
+heteroRes <- simulateResiduals(heteroModel)
+plotQQunif(heteroRes)
+heteroDisp <- testDispersion(heteroRes, plot=F)
+```
+
+
+Dispersion parameter = `r round(heteroDisp$statistic,2)`
+
+
+:::
+
+::: {.column width="33%"}
+```{r, fig.height=3,fig.width=3}
+par(mar=c(2,2,2,1))
+set.seed(5) 
+zeroData <- createData(sampleSize = 500, intercept = 2,
+                       randomEffectVariance = 0.01,
+                       pZeroInflation = 0.6)
+# ggplot(zeroData, aes(x=Environment1, y=observedResponse))+
+#   geom_point() +
+#   geom_smooth(method="glm", method.args = list(family="poisson"))
+
+zeroModel <- glmmTMB(observedResponse ~ Environment1 + (1|group), 
+                       family = "poisson", data = zeroData)
+# summary(zeroModel)
+
+# unconditional sim
+zeroRes <- simulateResiduals(zeroModel)
+plotQQunif(zeroRes)
+zeroDisp <- testDispersion(zeroRes, plot=F)
+```
+
+Dispersion parameter = `r round(zeroDisp$statistic,2)`
+
+:::
+
+::: {.column width="33%"}
+```{r, fig.height=3,fig.width=3}
+par(mar=c(2,2,2,1))
+set.seed(5) 
+overData <- createData(sampleSize = 500, intercept = 1,
+                       randomEffectVariance = 0.01,
+                       overdispersion = 0.8)
+# ggplot(overData, aes(x=Environment1, y=observedResponse))+
+#   geom_point() +
+#   geom_smooth(method="glm", method.args = list(family="poisson"))
+
+overModel <- glmmTMB(observedResponse ~ Environment1 + (1|group), 
+                       family = "poisson", data = overData)
+# summary(overModel)
+
+# unconditional sim
+overRes <- simulateResiduals(overModel)
+plotQQunif(overRes)
+overDisp <- testDispersion(overRes, plot=F)
+```
+
+Dispersion parameter = `r round(overDisp$statistic,2)`
+
+:::
+::::::
+
+
+
+## What is the problem? {.smaller}
+
+Solution:
+
+:::::: columns
+::: {.column width="34%"}
+
+**heteroscedasticity**
+
+```{r, fig.height=3,fig.width=3}
+par(mar=c(2,2,2,1))
+set.seed(5) 
+heteroData = createData(sampleSize = 500, intercept = 0.5,  
+                      overdispersion = function(x){
+                        return(rnorm(length(x), sd = 0.45 * abs(x)))}, 
+                      family = poisson(), randomEffectVariance = 0.01)
+# 
+# ggplot(heteroData, aes(x=Environment1, y=observedResponse))+
+#   geom_point() +
+#   geom_smooth(method="glm", method.args = list(family="poisson"))
+
+heteroModel <- glmmTMB(observedResponse ~ Environment1 + (1|group), 
+                       family = "poisson", data = heteroData)
+# summary(heteroModel)
+
+# unconditional sim
+heteroRes <- simulateResiduals(heteroModel)
+plotQQunif(heteroRes)
+heteroDisp <- testDispersion(heteroRes, plot=F)
+```
+
+
+Dispersion parameter = `r round(heteroDisp$statistic,2)`
+
+
+
+:::
+
+::: {.column width="33%"}
+
+**zero-inflation**
+
+```{r, fig.height=3,fig.width=3}
+par(mar=c(2,2,2,1))
+set.seed(5) 
+zeroData <- createData(sampleSize = 500, intercept = 2,
+                       randomEffectVariance = 0.01,
+                       pZeroInflation = 0.6)
+# ggplot(zeroData, aes(x=Environment1, y=observedResponse))+
+#   geom_point() +
+#   geom_smooth(method="glm", method.args = list(family="poisson"))
+
+zeroModel <- glmmTMB(observedResponse ~ Environment1 + (1|group), 
+                       family = "poisson", data = zeroData)
+# summary(zeroModel)
+
+# unconditional sim
+zeroRes <- simulateResiduals(zeroModel)
+plotQQunif(zeroRes)
+zeroDisp <- testDispersion(zeroRes, plot=F)
+```
+
+Dispersion parameter = `r round(zeroDisp$statistic,2)`
+
+:::
+
+::: {.column width="33%"}
+
+**"real" overdispersion**
+
+```{r, fig.height=3,fig.width=3}
+par(mar=c(2,2,2,1))
+set.seed(5) 
+overData <- createData(sampleSize = 500, intercept = 1,
+                       randomEffectVariance = 0.01,
+                       overdispersion = 0.8)
+# ggplot(overData, aes(x=Environment1, y=observedResponse))+
+#   geom_point() +
+#   geom_smooth(method="glm", method.args = list(family="poisson"))
+
+overModel <- glmmTMB(observedResponse ~ Environment1 + (1|group), 
+                       family = "poisson", data = overData)
+# summary(overModel)
+
+# unconditional sim
+overRes <- simulateResiduals(overModel)
+plotQQunif(overRes)
+overDisp <- testDispersion(overRes, plot=F)
+```
+
+Dispersion parameter = `r round(overDisp$statistic,2)`
+
+:::
+::::::
+
+::: aside
+Did you get it? Well, we have more tools for better diagnostics.
+:::
+
+
+## Problem 1: Heteroscedasticity {.smaller}
+
+::::: columns
+::: {.column width="40%"}
+![](images/heteroscedasticity.png)
+```{r,eval=F, echo=T}
+# wrong model
+glmmTMB(observedResponse ~ Environment1 +
+          (1|group), 
+          family = "poisson", data = heteroData)
+```
+
+:::
+
+::: {.column width="60%"}
+```{r, fig.height=6, fig.width=9}
+heteroRes <- simulateResiduals(heteroModel)
+plot(heteroRes)
+```
+
+```{r, eval=F, echo=T}
+heteroRes <- simulateResiduals(heteroModel)
+plot(heteroRes)
+```
+:::
+:::::
+
+::: notes
+Many think this is not a problem for GLMMs, but I'm showing here that YES, this
+is possible in GLMS, for example the poisson model, and that it can create
+overdispersion - but one that may be solved by modeling the dispersion term, not
+only changing the distribution to the negative binomial, for example.
+:::
+
+## Problem 1: Heteroscedasticity {.smaller}
+
+::::: columns
+::: {.column width="34%"}
+```{r, echo=T}
+plotResiduals(heteroRes, 
+    form=heteroData$Environment1, 
+    absoluteDeviation = T)
+```
+:::
+
+::: {.column width="33%"}
+```{r, echo=T}
+testDispersion(heteroRes)
+```
+:::
+
+::: {.column width="33%"}
+```{r, echo=T}
+testZeroInflation(heteroRes)
+```
+:::
+:::::
+
+## Solving heteroscedasticity {.smaller}
+
+
+::::: columns
+::: {.column width="50%"}
+```{r, echo=T, eval=F}
+glmmTMB(observedResponse ~ Environment1 + (1|group),
+        dispformula = ~Environment1,
+        family = nbinom2(), data = heteroData)
+```
+
+```{r, echo=F, fig.width=6, fig.height=5}
+# corrected model
+heteroModelCorrect <- glmmTMB(observedResponse ~ Environment1 + (1|group),
+                              dispformula = ~Environment1,
+                              family = nbinom2(), data = heteroData)
+heteroResCorrect <- simulateResiduals(heteroModelCorrect)
+plot(heteroResCorrect)
+```
+:::
+
+::: {.column width="50%"}
+```{r, echo=F}
+testDispersion(heteroResCorrect, plot=F)
+```
+
+```{r, echo=F, fig.width=6}
+heteroPredCorrect <- ggpredict(heteroModelCorrect, term="Environment1") |>
+  as.data.frame()
+heteroPred <- ggpredict(heteroModel, term="Environment1") |>
+  as.data.frame()
+heteroFig <- bind_rows(list(corrected = heteroPredCorrect, wrong = heteroPred), .id="Model")
+
+ggplot(heteroFig, aes(x=x, y=predicted, ymin=conf.low, ymax=conf.high, col=Model, fill=Model)) +
+   # geom_point(data=heteroData, aes(x=Environment1, y=observedResponse),
+   #          inherit.aes = F, alpha=0.1) +
+  geom_line()+
+  geom_ribbon(alpha=0.3,col=NA) 
+
+```
+:::
+:::::
+
+## Problem 2: Zero-inflation {.smaller}
+
+::::: columns
+::: {.column width="40%"}
+```{r, fig.width=3, fig.height=3}
+ggplot(zeroData, aes(x=Environment1, y=observedResponse))+
+  geom_point() +
+  geom_smooth(method="glm", method.args = list(family="poisson"))
+```
+
+```{r, echo=T, eval=F}
+# wrong model
+glmmTMB(observedResponse ~ Environment1 + (1|group), 
+              family = "poisson", data = zeroData)
+```
+:::
+
+::: {.column width="60%"}
+```{r, fig.width=10, fig.height=6}
+zeroRes <- simulateResiduals(zeroModel)
+plot(zeroRes)
+```
+
+```{r, echo=T, eval=F}
+zeroRes <- simulateResiduals(zeroModel)
+plot(zeroRes)
+```
+:::
+:::::
+
+## Problem 2: Zero-inflation {.smaller}
+
+::::: columns
+::: {.column width="34%"}
+```{r, echo=T}
+plotResiduals(zeroRes, 
+    form=zeroData$Environment1, 
+    absoluteDeviation = T)
+```
+:::
+
+
+::: {.column width="33%"}
+```{r, echo=T}
+testDispersion(zeroRes)
+
+```
+:::
+
+::: {.column width="33%"}
+```{r, echo=T}
+testZeroInflation(zeroRes)
+```
+:::
+:::::
+
+## Solving zero-inflation {.smaller}
+
+::::: columns
+::: {.column width="50%"}
+```{r}
+# corrected model
+zeroModelCorrect <- glmmTMB(observedResponse ~ Environment1 + (1|group),
+                            ziformula = ~1,
+                            family = poisson(), data = zeroData)
+```
+
+```{r, echo=T,eval=F}
+glmmTMB(observedResponse ~ Environment1 + (1|group),
+        ziformula = ~1,
+       family = poisson(), data = zeroData)
+```
+
+```{r, fig.width=6, fig.height=4}
+zeroResCorrect <- simulateResiduals(zeroModelCorrect)
+plot(zeroResCorrect)
+```
+:::
+
+::: {.column width="50%"}
+```{r}
+testDispersion(zeroResCorrect, plot=F)
+```
+
+```{r}
+zeroPredCorrect <- ggpredict(zeroModelCorrect, term="Environment1") |>
+  as.data.frame()
+zeroPred <- ggpredict(zeroModel, term="Environment1") |>
+  as.data.frame()
+zeroInfl <- ggpredict(zeroModelCorrect, term="Environment1", type = "zero_inflated") |>
+  as.data.frame()
+
+zeroProb <- ggpredict(zeroModelCorrect, term="Environment1", type = "zi_prob") |>
+  as.data.frame()
+
+
+zeroFig <- bind_rows(list(corrected = zeroPredCorrect, wrong = zeroPred,
+                          zeroInf = zeroInfl), .id="Model")
+
+ggplot(zeroFig, aes(x=x, y=predicted, ymin=conf.low, ymax=conf.high, col=Model, fill=Model)) +
+   geom_point(data=zeroData, aes(x=Environment1, y=observedResponse),
+             inherit.aes = F, alpha=0.1) +
+  geom_line()+
+  geom_ribbon(alpha=0.3,col=NA) 
+
+```
+:::
+:::::
+
+## Problem 3: Overdispersion {.smaller}
+
+::::: columns
+::: {.column width="40%"}
+```{r}
+ggplot(overData, aes(x=Environment1, y=observedResponse))+
+  geom_point() +
+  geom_smooth(method="glm", method.args = list(family="poisson"))
+```
+
+```{r, echo=T, eval=F}
+# wrong model
+glmmTMB(observedResponse ~ Environment1 + (1|group), 
+              family = "poisson", data = zeroData)
+```
+:::
+
+::: {.column width="60%"}
+```{r, fig.width=10, fig.height=6}
+overRes <- simulateResiduals(overModel)
+plot(overRes)
+```
+
+```{r, echo=T, eval=F}
+overRes <- simulateResiduals(overModel)
+plot(overRes)
+```
+:::
+:::::
+
+## Problem 3: Overdispersion {.smaller}
+
+::::: columns
+::: {.column width="34%"}
+```{r, echo=T}
+plotResiduals(overRes, 
+    form=overData$Environment1, 
+    absoluteDeviation = T)
+```
+:::
+
+
+::: {.column width="33%"}
+```{r, echo=T}
+testDispersion(overRes)
+
+```
+:::
+
+::: {.column width="33%"}
+```{r, echo=T}
+testZeroInflation(overRes)
+```
+:::
+:::::
+
+## Solving overdispersion {.smaller}
+
+::::: columns
+::: {.column width="50%"}
+```{r, eval=F, echo=T}
+glmmTMB(observedResponse ~ Environment1 + (1|group),
+        family = nbinom2(), data = overData)
+```
+```{r,fig.width=6}
+overModelCorrect <- glmmTMB(observedResponse ~ Environment1 + (1|group),
+                            family = nbinom2(), data = overData)
+overResCorrect <- simulateResiduals(overModelCorrect)
+plot(overResCorrect)
+```
+
+:::
+
+::: {.column width="50%"}
+```{r}
+testDispersion(overResCorrect, plot=F)
+```
+```{r, echo=F, fig.width=6}
+overPredCorrect <- ggpredict(overModelCorrect, term="Environment1") |>
+  as.data.frame()
+overPred <- ggpredict(overModel, term="Environment1") |>
+  as.data.frame()
+overFig <- bind_rows(list(corrected = overPredCorrect, wrong = overPred), .id="Model")
+
+ggplot(overFig, aes(x=x, y=predicted, ymin=conf.low, ymax=conf.high, col=Model, fill=Model)) +
+   # geom_point(data=overData, aes(x=Environment1, y=observedResponse),
+   #          inherit.aes = F, alpha=0.1) +
+  geom_line()+
+  geom_ribbon(alpha=0.3,col=NA) 
+
+```
+
+:::
+:::::
+
+## Conclusion  {.smaller}
+
++---------------+--------------------+--------------------+--------------------+
+|               | Heteroscedasticity | Zero-Inflation     | "real"             |
+|               |                    |                    | overdispersion     |
++===============+====================+====================+====================+
+| Problem       | Variability        | More zeros than    | More general       |
+|               | increases with     | expected by the    | variability than   |
+|               | predictor.         | model              | expected by the    |
+|               |                    |                    | model              |
++---------------+--------------------+--------------------+--------------------+
+| Diagnostics   | Dispersion         | Dispersion         | Dispersion         |
+|               | parameter \>\>1\*  | parameter          | parameter          |
+|               | (`                 | \>\>1(`            | \>\>1(`            |
+|               | testDispersion()`) | testDispersion()`) | testDispersion()`) |
+|               |                    |                    |                    |
+|               | Pattern in plot    | Zero-inflation     | Zero_inflation     |
+|               | Residual \~        | detection          | detection          |
+|               | Predictor          | (`tes              |                    |
+|               | (`plotResi         | tZeroInflation()`) | (`tes              |
+|               | duals(res, form=da |                    | tZeroInflation()`) |
+|               | ta$predictor, abso |                    |                    |
+|               | luteDeviation=T)`) |                    |                    |
++---------------+--------------------+--------------------+--------------------+
+| Possible      |                    |                    |                    |
+| solutions     |                    |                    |                    |
++---------------+--------------------+--------------------+--------------------+
+|               |                    |                    |                    |
++---------------+--------------------+--------------------+--------------------+
+|               |                    |                    |                    |
++---------------+--------------------+--------------------+--------------------+
+
+## Conclusions
+
+::::: columns
+::: {.column width="50%"}
+:::
+
+::: {.column width="50%"}
+:::
+:::::
+
+::: notes
+There are many other types of problems, especially talking about GLMMs, where
+the issue may not just be at the distribuion/observation level but also at the
+random effects level.
+:::
+
+## Take home message
+
+::::: columns
+::: {.column width="50%"}
+:::
+
+::: {.column width="50%"}
+:::
+:::::
+
+Comming soon: - Leite et al. in prep. Testing dispersion .... (propaganda do
+artigo) - Updates in default dispersion tests and simulations in `DHARMa`.
+
+# Thank you! Vielen Dank! {background-image="images/background.png"}
+
+::: notes
+Talvez um QR CODE para o link dessa apresentação - ou htlm de exemplo no
+github - devo coloar no github do DHARMa, em material didático?
+:::
