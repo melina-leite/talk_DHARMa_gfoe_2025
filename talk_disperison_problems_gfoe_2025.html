@@ -216,139 +216,45 @@ Melina de Souza Leite
 </div>
 
 </section>
-<section id="intro" class="slide level2">
-<h2>Intro</h2>
-</section>
-<section id="residual-diagnostics-in-glmm" class="slide level2">
-<h2>Residual diagnostics in GLMM</h2>
-<ul>
-<li>DHARMa approach</li>
-</ul>
-</section>
-<section id="goals" class="slide level2 smaller">
-<h2>Goals</h2>
-<p>Provide tools for ecologists to better detect and solve the many dispersion problems that may arrise in GLMMs:</p>
-<ul>
-<li><p>Heteroscedasticity</p></li>
-<li><p>Zero-inflation</p></li>
-<li><p>“Real” overdispersion</p></li>
-</ul>
-
-<aside><div>
-<p>Examples will be. using <code>DHARMa</code>, <code>glmmTMB</code>, and <code>ggeffects</code> packages.</p>
-</div></aside></section>
-<section id="what-is-the-problem" class="slide level2 smaller">
-<h2>What is the problem?</h2>
-<p>Which diagnostic is for: <strong>zero-inflation</strong>, <strong>“real” overdispersion</strong>, <strong>heteroscedasticity</strong>?</p>
+<section id="ecological-data-modeling" class="slide level2 smaller">
+<h2>Ecological data modeling</h2>
+<p style="text-align: center;">
+Increased complexity and flexibility in ecological data modeling:
+</p>
 <div class="columns">
-<div class="column" style="width:34%;">
-<div class="cell" data-layout-align="center">
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
+<div class="column" style="width:60%;">
+<ul>
+<li><p>Generalized linear modes (GLMs)</p></li>
+<li><p>Mixture models (e.g.&nbsp;zero-inflated GLMs)</p></li>
+<li><p>Hiearchical/Multilevel models, GLMMs</p></li>
+</ul>
+</div><div class="column" style="width:40%;">
+<div class="quarto-figure quarto-figure-left">
 <figure>
-<p><img data-src="talk_disperison_problems_gfoe_2025_files/figure-revealjs/unnamed-chunk-2-1.png" class="quarto-figure quarto-figure-center" width="288"></p>
+<p><img data-src="images/worried_man.jpg" class="quarto-figure quarto-figure-left"></p>
 </figure>
 </div>
-</div>
-</div>
-<p>Dispersion parameter = 1.9</p>
-</div><div class="column" style="width:33%;">
-<div class="cell" data-layout-align="center">
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img data-src="talk_disperison_problems_gfoe_2025_files/figure-revealjs/unnamed-chunk-3-1.png" class="quarto-figure quarto-figure-center" width="288"></p>
-</figure>
-</div>
-</div>
-</div>
-<p>Dispersion parameter = 4.91</p>
-</div><div class="column" style="width:33%;">
-<div class="cell" data-layout-align="center">
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img data-src="talk_disperison_problems_gfoe_2025_files/figure-revealjs/unnamed-chunk-4-1.png" class="quarto-figure quarto-figure-center" width="288"></p>
-</figure>
-</div>
-</div>
-</div>
-<p>Dispersion parameter = 5.19</p>
 </div></div>
-</section>
-<section id="what-is-the-problem-1" class="slide level2 smaller">
-<h2>What is the problem?</h2>
-<p>Solution:</p>
-<div class="columns">
-<div class="column" style="width:34%;">
-<p><strong>heteroscedasticity</strong></p>
-<div class="cell" data-layout-align="center">
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img data-src="talk_disperison_problems_gfoe_2025_files/figure-revealjs/unnamed-chunk-5-1.png" class="quarto-figure quarto-figure-center" width="288"></p>
-</figure>
-</div>
-</div>
-</div>
-<p>Dispersion parameter = 1.9</p>
-</div><div class="column" style="width:33%;">
-<p><strong>zero-inflation</strong></p>
-<div class="cell" data-layout-align="center">
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img data-src="talk_disperison_problems_gfoe_2025_files/figure-revealjs/unnamed-chunk-6-1.png" class="quarto-figure quarto-figure-center" width="288"></p>
-</figure>
-</div>
-</div>
-</div>
-<p>Dispersion parameter = 4.91</p>
-</div><div class="column" style="width:33%;">
-<p><strong>“real” overdispersion</strong></p>
-<div class="cell" data-layout-align="center">
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img data-src="talk_disperison_problems_gfoe_2025_files/figure-revealjs/unnamed-chunk-7-1.png" class="quarto-figure quarto-figure-center" width="288"></p>
-</figure>
-</div>
-</div>
-</div>
-<p>Dispersion parameter = 5.19</p>
-</div></div>
-
-<aside><div>
-<p>Did you get it? Well, we have more tools for better diagnostics.</p>
-</div></aside></section>
-<section id="problem-1-heteroscedasticity" class="slide level2 smaller">
-<h2>Problem 1: Heteroscedasticity</h2>
 <div class="columns">
 <div class="column" style="width:40%;">
-<p><img data-src="images/heteroscedasticity.png"></p>
-<div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href=""></a><span class="co"># wrong model</span></span>
-<span id="cb1-2"><a href=""></a><span class="fu">glmmTMB</span>(observedResponse <span class="sc">~</span> Environment1 <span class="sc">+</span></span>
-<span id="cb1-3"><a href=""></a>          (<span class="dv">1</span><span class="sc">|</span>group), </span>
-<span id="cb1-4"><a href=""></a>          <span class="at">family =</span> <span class="st">"poisson"</span>, <span class="at">data =</span> heteroData)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</div><div class="column" style="width:60%;">
-<div class="cell" data-layout-align="center">
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
+<div class="quarto-figure quarto-figure-right">
 <figure>
-<p><img data-src="talk_disperison_problems_gfoe_2025_files/figure-revealjs/unnamed-chunk-9-1.png" class="quarto-figure quarto-figure-center" width="864"></p>
+<p><img data-src="images/worried_woman.jpg" class="quarto-figure quarto-figure-right"></p>
 </figure>
 </div>
-</div>
-</div>
-<div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href=""></a>heteroRes <span class="ot">&lt;-</span> <span class="fu">simulateResiduals</span>(heteroModel)</span>
-<span id="cb2-2"><a href=""></a><span class="fu">plot</span>(heteroRes)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
+</div><div class="column" style="width:60%;">
+<p><br>
+</p>
+<ul>
+<li><p>But still few tools for model diagnostics</p></li>
+<li><p>Problem: <strong>failing to check model assumptions</strong></p></li>
+</ul>
 </div></div>
+<p style="text-align: center; font-size: 44px;">
+<strong>Can you trust your model?</strong>
+</p>
 <aside class="notes">
-<p>Many think this is not a problem for GLMMs, but I’m showing here that YES, this is possible in GLMS, for example the poisson model, and that it can create overdispersion - but one that may be solved by modeling the dispersion term, not only changing the distribution to the negative binomial, for example.</p>
+<p>Modeling ecological data is becoming a complex endeavour. Researchers have now great flexibility in model structure to address diverse data challenges, for example with the use of GLMs and many different distributions to fit their data, or using a mixture models to deal with an excess of zeros, or even having a hierarchical model like GLMMs. However, we see relatively fewer tools for diagnosing model fit and checking the model’s assumptions. The problem is that if we fail in checking our model, we are not sure how reliable are the results of our models.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -361,348 +267,233 @@ Melina de Souza Leite
           display:block!important;
       }</style></aside>
 </section>
-<section id="problem-1-heteroscedasticity-1" class="slide level2 smaller">
-<h2>Problem 1: Heteroscedasticity</h2>
-<div class="columns">
-<div class="column" style="width:34%;">
-<div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href=""></a><span class="fu">plotResiduals</span>(heteroRes, </span>
-<span id="cb3-2"><a href=""></a>    <span class="at">form=</span>heteroData<span class="sc">$</span>Environment1, </span>
-<span id="cb3-3"><a href=""></a>    <span class="at">absoluteDeviation =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img data-src="talk_disperison_problems_gfoe_2025_files/figure-revealjs/unnamed-chunk-11-1.png" class="quarto-figure quarto-figure-center" width="384"></p>
-</figure>
-</div>
-</div>
-</div>
-</div><div class="column" style="width:33%;">
-<div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href=""></a><span class="fu">testDispersion</span>(heteroRes)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img data-src="talk_disperison_problems_gfoe_2025_files/figure-revealjs/unnamed-chunk-12-1.png" class="quarto-figure quarto-figure-center" width="384"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>
-    DHARMa nonparametric dispersion test via sd of residuals fitted vs.
-    simulated
-
-data:  simulationOutput
-dispersion = 1.8953, p-value &lt; 2.2e-16
-alternative hypothesis: two.sided</code></pre>
-</div>
-</div>
-</div><div class="column" style="width:33%;">
-<div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href=""></a><span class="fu">testZeroInflation</span>(heteroRes)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img data-src="talk_disperison_problems_gfoe_2025_files/figure-revealjs/unnamed-chunk-13-1.png" class="quarto-figure quarto-figure-center" width="384"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>
-    DHARMa zero-inflation test via comparison to expected zeros with
-    simulation under H0 = fitted model
-
-data:  simulationOutput
-ratioObsSim = 1.0962, p-value = 0.248
-alternative hypothesis: two.sided</code></pre>
-</div>
-</div>
-</div></div>
-</section>
-<section id="solving-heteroscedasticity" class="slide level2 smaller">
-<h2>Solving heteroscedasticity</h2>
+<section id="dispersion-problems-in-count-data" class="slide level2 smaller">
+<h2>Dispersion problems in count data</h2>
 <div class="columns">
 <div class="column" style="width:50%;">
-<div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href=""></a><span class="fu">glmmTMB</span>(observedResponse <span class="sc">~</span> Environment1 <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>group),</span>
-<span id="cb8-2"><a href=""></a>        <span class="at">dispformula =</span> <span class="sc">~</span>Environment1,</span>
-<span id="cb8-3"><a href=""></a>        <span class="at">family =</span> <span class="fu">nbinom2</span>(), <span class="at">data =</span> heteroData)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="cell" data-layout-align="center">
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img data-src="talk_disperison_problems_gfoe_2025_files/figure-revealjs/unnamed-chunk-15-1.png" class="quarto-figure quarto-figure-center" width="576"></p>
-</figure>
-</div>
-</div>
-</div>
+<ul>
+<li><p>Example count data:</p>
+<ul>
+<li>Species richness</li>
+<li>Abundance of indiviuals</li>
+<li>Number of success (K) within a number of trials (N)</li>
+</ul></li>
+</ul>
 </div><div class="column" style="width:50%;">
+<ul>
+<li><p>Modeling count data, GL(M)M distributions:</p>
+<ul>
+<li><p>Poisson</p></li>
+<li><p>Binomial (K/N) proportion</p></li>
+</ul></li>
+</ul>
+</div></div>
+<p><br>
+</p>
+<p>Problem when data has <strong>more or less variability than expected by the distribution</strong> used for modeling:</p>
+<p style="text-align: center; font-size: 44px; color: red;">
+<strong>UNDER or OVERDISPERSION</strong>
+</p>
+<aside class="notes">
+<p>For example, many datasets in ecology are count data, form example, species richness, individual abundances, or the proportion of success within a certain number of trials. Those datasets are usually modeled using GLMs with a Poisson distribution or a Binomial distribution. I bet you have an example in your mind with this kind of data and using one of these distributions. However, a problem that is more common in ecology than the literature would suggest is the over or underdispersion, that is, when the dataset has more or less variability than expected by the distribution you are using to model it. It happens because these two distributions, the most common ones used in ecological modeling, have a specific and fixed mean -variance relationship. For example, for the Poisson, the mean of the distribution is also the variance.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="causes-of-dispersion-problems" class="slide level2 smaller">
+<h2>Causes of dispersion problems</h2>
+<p><br>
+</p>
+<ul>
+<li><strong>Heteroscedasticity:</strong> variance increases/decreases with a predictor</li>
+</ul>
+<p><br>
+</p>
+<ul>
+<li><strong>Zero-inflation:</strong> more zeros than expected by the model/distribution</li>
+</ul>
+<p><br>
+</p>
+<ul>
+<li><strong>“Real” overdispersion:</strong> more variance that expected by the model/distribution.</li>
+</ul>
+
+<aside class="notes">
+<p>But not all overdispersion problem in your data has the same cause. Dispersion problems may arrise from different sources, and my goal here is to show you these problems and how to better detect it and solve it once you face it in your own data. I believe that being able to distinguish between these 3 main dispersion problems is not just important for a better model fit, but also it may provide more information from your system other than just modeling the mean. Knowing how and possible causes of larger variability in your data may also bring ecological information. To do that, I’ll show you the residual diagnostics for GLMMs using DHARMa, and apply model diagnostics for each dispersion problem with hypothetical examples.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+<aside><div>
+<p>These are the main causes, there are more.</p>
+</div></aside></section>
+<section id="consequences-of-dispersion-problems" class="slide level2 smaller">
+<h2>Consequences of dispersion problems</h2>
+<p><br>
+</p>
+<ul>
+<li><p>Too small standard error of estimates -&gt; narrower confidence intervals</p></li>
+<li><p>Larger chance of type I error: find an effect when it doesn’t exist</p></li>
+</ul>
+<p><br>
+</p>
+<ul>
+<li>Wrong estimates by ignoring other processes (e.g.&nbsp;zero-inflation causes) in your data-generating process.</li>
+</ul>
+<p><br>
+</p>
+<ul>
+<li>Missing the opportunity to learn and get more info from your data/system. Ecological meanings for modeling/understanding unexpected variability?</li>
+</ul>
+</section>
+<section id="section" class="slide level2" data-background-image="images/background.png">
+<h2></h2>
+<p><br>
+</p>
+
+<img data-src="images/Dharma_Wheel.png" class="quarto-figure quarto-figure-center r-stretch" width="50"><p><br>
+</p>
+<p style="text-align: center; font-size: 60px;">
+Detecting dispersion problems with <code>DHARMa</code>
+</p>
+<p><br>
+</p>
+<p><br>
+</p>
+</section>
+<section id="residual-diagnostics-with-dharma" class="slide level2 smaller">
+<h2>Residual diagnostics with <code>DHARMa</code></h2>
+<ul>
+<li><p>Scaled quantile residuals -&gt; Simulating from the model</p></li>
+<li><p>Residuals between 0 and 1 for ANY model complexity or distribution</p></li>
+<li><p>Interpreted the SAME way:</p></li>
+</ul>
+<blockquote>
+<p>If your model is correctly specified, i.e.&nbsp;your have the “data-generating process”, scaled quantile residuals will present a uniform “flat” distribution between 0 and 1.</p>
+</blockquote>
+
+<img data-src="talk_disperison_problems_gfoe_2025_files/figure-revealjs/unnamed-chunk-2-1.png" class="quarto-figure quarto-figure-center r-stretch" width="768"><aside class="notes">
+<p>The DHARMa approach is to generate a specific type of residuals, the scale quantile residuals, by simulating many new datasets from your model. The scale residuals are standardized between 0 and 1 for any distribution and model complexity, and they should be interpreted the same way. That is, if your model is correctly specified, that means you have the data generating process, the residuals should present an uniform distribution, a flat distribution between zero and 1. These are the two main diagnostics plot from DHARMa, one quantile-quantile plot that you expect that the residuals (black dots) should align with the diagnoal red line, and the other the residuals agains the fitted values, which we would expect a uniform distribution of them along the fitted values, reprsented by these 3 black horizontal lines. Now, let’s check DHARMa residuals can detect dispersion problems in the data…</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="detecting-dispersion-problems-with-dharma" class="slide level2 smaller">
+<h2>Detecting dispersion problems with <code>DHARMa</code></h2>
+<p>Create DHARMa residuals</p>
 <div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href=""></a>DHARMaResiduals <span class="ot">&lt;-</span> <span class="fu">simulateResiduals</span>(model)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Test dispersion problems</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb2"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href=""></a><span class="fu">testDispersion</span>(DHARMaResiduals)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Test heteroscedasticity</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href=""></a><span class="fu">plotResiduals</span>(DHARMaResiduals, </span>
+<span id="cb3-2"><a href=""></a>              <span class="at">form =</span> data<span class="sc">$</span>Environment1, <span class="co"># the predictor</span></span>
+<span id="cb3-3"><a href=""></a>              <span class="at">absoluteDeviation =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Test zero inflation</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href=""></a><span class="fu">testZeroInflation</span>(DHARMaRresiduals)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="solving-dispersion-problems-glmmtmb" class="slide level2 smaller">
+<h2>Solving dispersion problems: <code>glmmTMB</code></h2>
+<p>Overdispersion</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href=""></a><span class="fu">glmmTMB</span>(observedResponse <span class="sc">~</span> Enviroment1, </span>
+<span id="cb5-2"><a href=""></a>        <span class="at">family =</span> <span class="fu">nbinom2</span>(), ...) <span class="co"># from poisson()</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Heteroscedasticity</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href=""></a><span class="fu">glmmTMB</span>(observedResponse <span class="sc">~</span> Enviroment1, </span>
+<span id="cb6-2"><a href=""></a>        <span class="at">dispformula =</span> <span class="sc">~</span> Enviroment1, <span class="co"># dispersion formula</span></span>
+<span id="cb6-3"><a href=""></a>        <span class="at">family =</span> <span class="fu">nbinom2</span>(), ...) <span class="co"># needs to be negative binomial</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Zero-inflation</p>
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb7"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href=""></a><span class="fu">glmmTMB</span>(observedResponse <span class="sc">~</span> Enviroment1, </span>
+<span id="cb7-2"><a href=""></a>        <span class="at">ziformula =</span> <span class="sc">~</span> <span class="dv">1</span>, <span class="co"># zero-inflation formula / can add predictor</span></span>
+<span id="cb7-3"><a href=""></a>        <span class="at">family =</span> <span class="fu">poisson</span>(), ...) <span class="co"># can also be negative binomial</span></span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section>
+<section id="what-is-the-problem" class="title-slide slide level1 center" data-background-image="images/background.png">
+<h1>What is the problem?</h1>
+
+</section>
+<section id="problem-1" class="slide level2 smaller">
+<h2>Problem 1</h2>
+<div class="columns">
+<div class="column" style="width:55%;">
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="talk_disperison_problems_gfoe_2025_files/figure-revealjs/unnamed-chunk-10-1.png" class="quarto-figure quarto-figure-center" width="864"></p>
+</figure>
+</div>
+</div>
+</div>
+</div><div class="column" style="width:45%;">
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href=""></a><span class="fu">testDispersion</span>(overRes,<span class="at">plot=</span>F)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 <div class="cell-output cell-output-stdout">
 <pre><code>
     DHARMa nonparametric dispersion test via sd of residuals fitted vs.
     simulated
 
 data:  simulationOutput
-dispersion = 1.106, p-value = 0.44
-alternative hypothesis: two.sided</code></pre>
-</div>
-</div>
-<div class="cell" data-layout-align="center">
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img data-src="talk_disperison_problems_gfoe_2025_files/figure-revealjs/unnamed-chunk-17-1.png" class="quarto-figure quarto-figure-center" width="576"></p>
-</figure>
-</div>
-</div>
-</div>
-</div></div>
-</section>
-<section id="problem-2-zero-inflation" class="slide level2 smaller">
-<h2>Problem 2: Zero-inflation</h2>
-<div class="columns">
-<div class="column" style="width:40%;">
-<div class="cell" data-layout-align="center">
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img data-src="talk_disperison_problems_gfoe_2025_files/figure-revealjs/unnamed-chunk-18-1.png" class="quarto-figure quarto-figure-center" width="288"></p>
-</figure>
-</div>
-</div>
-</div>
-<div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href=""></a><span class="co"># wrong model</span></span>
-<span id="cb10-2"><a href=""></a><span class="fu">glmmTMB</span>(observedResponse <span class="sc">~</span> Environment1 <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>group), </span>
-<span id="cb10-3"><a href=""></a>              <span class="at">family =</span> <span class="st">"poisson"</span>, <span class="at">data =</span> zeroData)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</div><div class="column" style="width:60%;">
-<div class="cell" data-layout-align="center">
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img data-src="talk_disperison_problems_gfoe_2025_files/figure-revealjs/unnamed-chunk-20-1.png" class="quarto-figure quarto-figure-center" width="960"></p>
-</figure>
-</div>
-</div>
-</div>
-<div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb11"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href=""></a>zeroRes <span class="ot">&lt;-</span> <span class="fu">simulateResiduals</span>(zeroModel)</span>
-<span id="cb11-2"><a href=""></a><span class="fu">plot</span>(zeroRes)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</div></div>
-</section>
-<section id="problem-2-zero-inflation-1" class="slide level2 smaller">
-<h2>Problem 2: Zero-inflation</h2>
-<div class="columns">
-<div class="column" style="width:34%;">
-<div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href=""></a><span class="fu">plotResiduals</span>(zeroRes, </span>
-<span id="cb12-2"><a href=""></a>    <span class="at">form=</span>zeroData<span class="sc">$</span>Environment1, </span>
-<span id="cb12-3"><a href=""></a>    <span class="at">absoluteDeviation =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img data-src="talk_disperison_problems_gfoe_2025_files/figure-revealjs/unnamed-chunk-22-1.png" class="quarto-figure quarto-figure-center" width="384"></p>
-</figure>
-</div>
-</div>
-</div>
-</div><div class="column" style="width:33%;">
-<div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href=""></a><span class="fu">testDispersion</span>(zeroRes)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img data-src="talk_disperison_problems_gfoe_2025_files/figure-revealjs/unnamed-chunk-23-1.png" class="quarto-figure quarto-figure-center" width="384"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>
-    DHARMa nonparametric dispersion test via sd of residuals fitted vs.
-    simulated
-
-data:  simulationOutput
-dispersion = 4.9124, p-value &lt; 2.2e-16
-alternative hypothesis: two.sided</code></pre>
-</div>
-</div>
-</div><div class="column" style="width:33%;">
-<div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href=""></a><span class="fu">testZeroInflation</span>(zeroRes)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img data-src="talk_disperison_problems_gfoe_2025_files/figure-revealjs/unnamed-chunk-24-1.png" class="quarto-figure quarto-figure-center" width="384"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>
-    DHARMa zero-inflation test via comparison to expected zeros with
-    simulation under H0 = fitted model
-
-data:  simulationOutput
-ratioObsSim = 5.1634, p-value &lt; 2.2e-16
+dispersion = 5.2662, p-value &lt; 2.2e-16
 alternative hypothesis: two.sided</code></pre>
 </div>
 </div>
 </div></div>
 </section>
-<section id="solving-zero-inflation" class="slide level2 smaller">
-<h2>Solving zero-inflation</h2>
+<section id="try-a-negative-binomial-model" class="slide level2 smaller">
+<h2>Try a negative binomial model</h2>
+<p>Modeling “real” overdispersion</p>
 <div class="columns">
-<div class="column" style="width:50%;">
+<div class="column" style="width:60%;">
 <div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href=""></a><span class="fu">glmmTMB</span>(observedResponse <span class="sc">~</span> Environment1 <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>group),</span>
-<span id="cb17-2"><a href=""></a>        <span class="at">ziformula =</span> <span class="sc">~</span><span class="dv">1</span>,</span>
-<span id="cb17-3"><a href=""></a>       <span class="at">family =</span> <span class="fu">poisson</span>(), <span class="at">data =</span> zeroData)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="cell" data-layout-align="center">
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img data-src="talk_disperison_problems_gfoe_2025_files/figure-revealjs/unnamed-chunk-27-1.png" class="quarto-figure quarto-figure-center" width="576"></p>
-</figure>
-</div>
-</div>
-</div>
-</div><div class="column" style="width:50%;">
-<div class="cell" data-layout-align="center">
-<div class="cell-output cell-output-stdout">
-<pre><code>
-    DHARMa nonparametric dispersion test via sd of residuals fitted vs.
-    simulated
-
-data:  simulationOutput
-dispersion = 1.0414, p-value = 0.696
-alternative hypothesis: two.sided</code></pre>
-</div>
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href=""></a><span class="fu">glmmTMB</span>(observedResponse <span class="sc">~</span> Environment1 <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>group),</span>
+<span id="cb10-2"><a href=""></a>        <span class="at">family =</span> <span class="fu">nbinom2</span>(), <span class="at">data =</span> overData)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
 </div>
 <div class="cell" data-layout-align="center">
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="talk_disperison_problems_gfoe_2025_files/figure-revealjs/unnamed-chunk-29-1.png" class="quarto-figure quarto-figure-center" width="384"></p>
+<p><img data-src="talk_disperison_problems_gfoe_2025_files/figure-revealjs/unnamed-chunk-13-1.png" class="quarto-figure quarto-figure-center" width="576"></p>
 </figure>
 </div>
 </div>
 </div>
-</div></div>
-</section>
-<section id="problem-3-overdispersion" class="slide level2 smaller">
-<h2>Problem 3: Overdispersion</h2>
-<div class="columns">
-<div class="column" style="width:40%;">
-<div class="cell" data-layout-align="center">
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img data-src="talk_disperison_problems_gfoe_2025_files/figure-revealjs/unnamed-chunk-30-1.png" class="quarto-figure quarto-figure-center" width="384"></p>
-</figure>
-</div>
-</div>
-</div>
-<div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href=""></a><span class="co"># wrong model</span></span>
-<span id="cb19-2"><a href=""></a><span class="fu">glmmTMB</span>(observedResponse <span class="sc">~</span> Environment1 <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>group), </span>
-<span id="cb19-3"><a href=""></a>              <span class="at">family =</span> <span class="st">"poisson"</span>, <span class="at">data =</span> zeroData)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</div><div class="column" style="width:60%;">
-<div class="cell" data-layout-align="center">
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img data-src="talk_disperison_problems_gfoe_2025_files/figure-revealjs/unnamed-chunk-32-1.png" class="quarto-figure quarto-figure-center" width="960"></p>
-</figure>
-</div>
-</div>
-</div>
-<div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb20"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb20-1"><a href=""></a>overRes <span class="ot">&lt;-</span> <span class="fu">simulateResiduals</span>(overModel)</span>
-<span id="cb20-2"><a href=""></a><span class="fu">plot</span>(overRes)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-</div></div>
-</section>
-<section id="problem-3-overdispersion-1" class="slide level2 smaller">
-<h2>Problem 3: Overdispersion</h2>
-<div class="columns">
-<div class="column" style="width:34%;">
-<div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href=""></a><span class="fu">plotResiduals</span>(overRes, </span>
-<span id="cb21-2"><a href=""></a>    <span class="at">form=</span>overData<span class="sc">$</span>Environment1, </span>
-<span id="cb21-3"><a href=""></a>    <span class="at">absoluteDeviation =</span> T)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img data-src="talk_disperison_problems_gfoe_2025_files/figure-revealjs/unnamed-chunk-34-1.png" class="quarto-figure quarto-figure-center" width="384"></p>
-</figure>
-</div>
-</div>
-</div>
-</div><div class="column" style="width:33%;">
-<div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href=""></a><span class="fu">testDispersion</span>(overRes)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img data-src="talk_disperison_problems_gfoe_2025_files/figure-revealjs/unnamed-chunk-35-1.png" class="quarto-figure quarto-figure-center" width="384"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>
-    DHARMa nonparametric dispersion test via sd of residuals fitted vs.
-    simulated
-
-data:  simulationOutput
-dispersion = 5.1895, p-value &lt; 2.2e-16
-alternative hypothesis: two.sided</code></pre>
-</div>
-</div>
-</div><div class="column" style="width:33%;">
-<div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href=""></a><span class="fu">testZeroInflation</span>(overRes)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img data-src="talk_disperison_problems_gfoe_2025_files/figure-revealjs/unnamed-chunk-36-1.png" class="quarto-figure quarto-figure-center" width="384"></p>
-</figure>
-</div>
-</div>
-<div class="cell-output cell-output-stdout">
-<pre><code>
-    DHARMa zero-inflation test via comparison to expected zeros with
-    simulation under H0 = fitted model
-
-data:  simulationOutput
-ratioObsSim = 2.6789, p-value &lt; 2.2e-16
-alternative hypothesis: two.sided</code></pre>
-</div>
-</div>
-</div></div>
-</section>
-<section id="solving-overdispersion" class="slide level2 smaller">
-<h2>Solving overdispersion</h2>
-<div class="columns">
-<div class="column" style="width:50%;">
-<div class="cell" data-layout-align="center">
-<div class="sourceCode cell-code" id="cb26"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb26-1"><a href=""></a><span class="fu">glmmTMB</span>(observedResponse <span class="sc">~</span> Environment1 <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>group),</span>
-<span id="cb26-2"><a href=""></a>        <span class="at">family =</span> <span class="fu">nbinom2</span>(), <span class="at">data =</span> overData)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
-</div>
-<div class="cell" data-layout-align="center">
-<div class="cell-output-display">
-<div class="quarto-figure quarto-figure-center">
-<figure>
-<p><img data-src="talk_disperison_problems_gfoe_2025_files/figure-revealjs/unnamed-chunk-38-1.png" class="quarto-figure quarto-figure-center" width="576"></p>
-</figure>
-</div>
-</div>
-</div>
-</div><div class="column" style="width:50%;">
+</div><div class="column" style="width:40%;">
 <div class="cell" data-layout-align="center">
 <div class="cell-output cell-output-stdout">
 <pre><code>
@@ -714,80 +505,208 @@ dispersion = 1.1935, p-value = 0.224
 alternative hypothesis: two.sided</code></pre>
 </div>
 </div>
+<hr>
+<div class="cell" data-layout-align="center">
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    DHARMa zero-inflation test via comparison to expected zeros with
+    simulation under H0 = fitted model
+
+data:  simulationOutput
+ratioObsSim = 0.97326, p-value = 0.848
+alternative hypothesis: two.sided</code></pre>
+</div>
+</div>
+</div></div>
+
+<aside><div>
+<p>Problem solved!</p>
+</div></aside></section>
+<section id="problem-2" class="slide level2 smaller">
+<h2>Problem 2</h2>
+<div class="columns">
+<div class="column" style="width:55%;">
 <div class="cell" data-layout-align="center">
 <div class="cell-output-display">
 <div class="quarto-figure quarto-figure-center">
 <figure>
-<p><img data-src="talk_disperison_problems_gfoe_2025_files/figure-revealjs/unnamed-chunk-40-1.png" class="quarto-figure quarto-figure-center" width="576"></p>
+<p><img data-src="talk_disperison_problems_gfoe_2025_files/figure-revealjs/unnamed-chunk-16-1.png" class="quarto-figure quarto-figure-center" width="864"></p>
 </figure>
 </div>
 </div>
 </div>
+</div><div class="column" style="width:45%;">
+<div class="cell" data-layout-align="center">
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    DHARMa nonparametric dispersion test via sd of residuals fitted vs.
+    simulated
+
+data:  simulationOutput
+dispersion = 1.9199, p-value &lt; 2.2e-16
+alternative hypothesis: two.sided</code></pre>
+</div>
+</div>
 </div></div>
 </section>
+<section id="add-a-dispersion-formula" class="slide level2 smaller">
+<h2>Add a dispersion formula</h2>
+<p>Modeling heteroscedasticity</p>
+<div class="columns">
+<div class="column" style="width:60%;">
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href=""></a><span class="fu">glmmTMB</span>(observedResponse <span class="sc">~</span> Environment1 <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>group),</span>
+<span id="cb14-2"><a href=""></a>        <span class="at">dispformula =</span> <span class="sc">~</span> Environment1,</span>
+<span id="cb14-3"><a href=""></a>        <span class="at">family =</span> <span class="fu">nbinom2</span>(), <span class="at">data =</span> heteroData)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="talk_disperison_problems_gfoe_2025_files/figure-revealjs/unnamed-chunk-19-1.png" class="quarto-figure quarto-figure-center" width="864"></p>
+</figure>
+</div>
+</div>
+</div>
+</div><div class="column" style="width:40%;">
+<div class="cell" data-layout-align="center">
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    DHARMa nonparametric dispersion test via sd of residuals fitted vs.
+    simulated
+
+data:  simulationOutput
+dispersion = 1.106, p-value = 0.44
+alternative hypothesis: two.sided</code></pre>
+</div>
+</div>
+<hr>
+<div class="cell" data-layout-align="center">
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    DHARMa zero-inflation test via comparison to expected zeros with
+    simulation under H0 = fitted model
+
+data:  simulationOutput
+ratioObsSim = 0.98758, p-value = 0.92
+alternative hypothesis: two.sided</code></pre>
+</div>
+</div>
+</div></div>
+
+<aside><div>
+<p>Problem Solved!</p>
+</div></aside></section>
+<section id="problem-3" class="slide level2 smaller">
+<h2>Problem 3</h2>
+<div class="columns">
+<div class="column" style="width:55%;">
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="talk_disperison_problems_gfoe_2025_files/figure-revealjs/unnamed-chunk-22-1.png" class="quarto-figure quarto-figure-center" width="864"></p>
+</figure>
+</div>
+</div>
+</div>
+</div><div class="column" style="width:45%;">
+<div class="cell" data-layout-align="center">
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    DHARMa nonparametric dispersion test via sd of residuals fitted vs.
+    simulated
+
+data:  simulationOutput
+dispersion = 4.9124, p-value &lt; 2.2e-16
+alternative hypothesis: two.sided</code></pre>
+</div>
+</div>
+</div></div>
+</section>
+<section id="add-a-zero-inflation-formula" class="slide level2 smaller">
+<h2>Add a zero-inflation formula</h2>
+<p>Modeling zero-inflation</p>
+<div class="columns">
+<div class="column" style="width:60%;">
+<div class="cell" data-layout-align="center">
+<div class="sourceCode cell-code" id="cb18"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb18-1"><a href=""></a><span class="fu">glmmTMB</span>(observedResponse <span class="sc">~</span> Environment1 <span class="sc">+</span> (<span class="dv">1</span><span class="sc">|</span>group),</span>
+<span id="cb18-2"><a href=""></a>        <span class="at">ziformula =</span>  <span class="sc">~</span> <span class="dv">1</span>,</span>
+<span id="cb18-3"><a href=""></a>        <span class="at">family =</span> <span class="fu">poisson</span>(), <span class="at">data =</span> zeroData)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell" data-layout-align="center">
+<div class="cell-output-display">
+<div class="quarto-figure quarto-figure-center">
+<figure>
+<p><img data-src="talk_disperison_problems_gfoe_2025_files/figure-revealjs/unnamed-chunk-25-1.png" class="quarto-figure quarto-figure-center" width="864"></p>
+</figure>
+</div>
+</div>
+</div>
+</div><div class="column" style="width:40%;">
+<div class="cell" data-layout-align="center">
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    DHARMa nonparametric dispersion test via sd of residuals fitted vs.
+    simulated
+
+data:  simulationOutput
+dispersion = 1.0414, p-value = 0.696
+alternative hypothesis: two.sided</code></pre>
+</div>
+</div>
+<hr>
+<div class="cell" data-layout-align="center">
+<div class="cell-output cell-output-stdout">
+<pre><code>
+    DHARMa zero-inflation test via comparison to expected zeros with
+    simulation under H0 = fitted model
+
+data:  simulationOutput
+ratioObsSim = 0.99592, p-value = 1
+alternative hypothesis: two.sided</code></pre>
+</div>
+</div>
+</div></div>
+
+<aside><div>
+<p>Problem Solved!</p>
+</div></aside></section>
+<section id="solving-dispersion-problems" class="slide level2 smaller">
+<h2>Solving dispersion problems</h2>
+<ul>
+<li><p>Sometimes, residual patterns will not tell you which is the cause of overdispersion. E.g.:</p>
+<ul>
+<li><p>Real cause is ‘overdispersion’ but will have significant test for zero-inflation, and vice-versa.</p></li>
+<li><p>Overdispersion and zero-inflation causes can have significant heteroscedasticity</p></li>
+</ul></li>
+</ul>
+<p><br>
+</p>
+<ul>
+<li>Additional check: fit models addressing the potential problems and compare their fit (e.g.&nbsp;AIC, LRT) and residuals diagnostics.</li>
+</ul>
+
+<aside><div>
+<p>Don’t always assume the most complex/complicated model is the correct one!</p>
+</div></aside></section>
 <section id="conclusion" class="slide level2 smaller">
 <h2>Conclusion</h2>
-<table class="caption-top" style="width:98%;">
-<colgroup>
-<col style="width: 19%">
-<col style="width: 25%">
-<col style="width: 25%">
-<col style="width: 25%">
-</colgroup>
-<thead>
-<tr class="header">
-<th></th>
-<th>Heteroscedasticity</th>
-<th>Zero-Inflation</th>
-<th>“real” overdispersion</th>
-</tr>
-</thead>
-<tbody>
-<tr class="odd">
-<td>Problem</td>
-<td>Variability increases with predictor.</td>
-<td>More zeros than expected by the model</td>
-<td>More general variability than expected by the model</td>
-</tr>
-<tr class="even">
-<td>Diagnostics</td>
-<td><p>Dispersion parameter &gt;&gt;1* (<code>testDispersion()</code>)</p>
-<p>Pattern in plot Residual ~ Predictor (<code>plotResi duals(res, form=da ta$predictor, abso luteDeviation=T)</code>)</p></td>
-<td><p>Dispersion parameter &gt;&gt;1(<code>testDispersion()</code>)</p>
-<p>Zero-inflation detection (<code>tes tZeroInflation()</code>)</p></td>
-<td><p>Dispersion parameter &gt;&gt;1(<code>testDispersion()</code>)</p>
-<p>Zero_inflation detection</p>
-<p>(<code>tes tZeroInflation()</code>)</p></td>
-</tr>
-<tr class="odd">
-<td>Possible solutions</td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr class="even">
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-<tr class="odd">
-<td></td>
-<td></td>
-<td></td>
-<td></td>
-</tr>
-</tbody>
-</table>
-</section>
-<section id="conclusions" class="slide level2">
-<h2>Conclusions</h2>
-<div class="columns">
-<div class="column" style="width:50%;">
-
-</div><div class="column" style="width:50%;">
-
-</div></div>
+<p><br>
+</p>
+<ul>
+<li>There are many causes of dispersion problems in GLMMs</li>
+</ul>
+<p><br>
+</p>
+<ul>
+<li>Use <code>DHARMa</code> residuals tools to detect them</li>
+</ul>
+<p><br>
+</p>
+<ul>
+<li>Address the problem with adequate models, e.g, <code>glmmTMB</code></li>
+</ul>
 <aside class="notes">
 <p>There are many other types of problems, especially talking about GLMMs, where the issue may not just be at the distribuion/observation level but also at the random effects level.</p>
 <style type="text/css">
@@ -802,18 +721,44 @@ alternative hypothesis: two.sided</code></pre>
           display:block!important;
       }</style></aside>
 </section>
-<section id="take-home-message" class="slide level2">
+<section id="take-home-message" class="slide level2 smaller">
 <h2>Take home message</h2>
-<div class="columns">
-<div class="column" style="width:50%;">
+<p><br>
+</p>
+<ul>
+<li>Models should ALWAYS be checked: residual diagnostics!</li>
+</ul>
+<p><br>
+</p>
+<ul>
+<li>Avoid the oversimplistic view of dispersion problems</li>
+</ul>
+<p><br>
+</p>
+<ul>
+<li>Detecting and addressing the causes of dispersion problems may also be informative for your system/data.</li>
+</ul>
 
-</div><div class="column" style="width:50%;">
+<aside><div>
+<p>Comming soon: Leite et al.&nbsp;<em>in prep.</em> Dispersion tests in GLMMs - a methods comparison and practical guide.</p>
+</div></aside></section>
+<section id="section-1" class="slide level2" data-background-image="images/background.png">
+<h2></h2>
+<p><br>
+</p>
+<p><br>
+</p>
+<p><br>
+</p>
+<p style="text-align: center; font-size: 70px;">
+Thank you!
+</p>
+<p><br>
+</p>
+<p style="text-align: center; font-size: 70px;">
+Vielen Dank!
+</p>
 
-</div></div>
-<p>Comming soon: - Leite et al.&nbsp;in prep. Testing dispersion …. (propaganda do artigo) - Updates in default dispersion tests and simulations in <code>DHARMa</code>.</p>
-</section>
-<section id="thank-you-vielen-dank" class="title-slide slide level1 center" data-background-image="images/background.png">
-<h1>Thank you! Vielen Dank!</h1>
 <aside class="notes">
 <p>Talvez um QR CODE para o link dessa apresentação - ou htlm de exemplo no github - devo coloar no github do DHARMa, em material didático?</p>
 <style type="text/css">
@@ -828,7 +773,9 @@ alternative hypothesis: two.sided</code></pre>
           display:block!important;
       }</style></aside>
 
-</section>
+<aside><div>
+<p>Acknowledgements to Florian Hartig, Max Pichler, and the Theoretical Ecology Lab group</p>
+</div></aside></section></section>
     </div>
   <div class="quarto-auto-generated-content" style="display: none;">
 <div class="footer footer-default">

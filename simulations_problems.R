@@ -1,5 +1,7 @@
 
-```{r}
+# HETEROSCEDASTICITY -----
+
+## DATA ----
 set.seed(5) 
 heteroData = createData(sampleSize = 500, intercept = 0.5,  
                         overdispersion = function(x){
@@ -10,21 +12,19 @@ ggplot(heteroData, aes(x=Environment1, y=observedResponse))+
   geom_point() +
   geom_smooth(method="glm", method.args = list(family="poisson"))
 
-heteroModel <- glmmTMB(observedResponse ~ Environment1 + (1|group), 
+
+## WRONG MODEL ----
+
+heteroModelWrong <- glmmTMB(observedResponse ~ Environment1 + (1|group), 
                        family = "poisson", data = heteroData)
-summary(heteroModel)
+summary(heteroModelWrong)
 
 # unconditional sim
-heteroRes <- simulateResiduals(heteroModel)
-plot(heteroRes)
-testDispersion(heteroRes, plot=F)
+heteroResWrong <- simulateResiduals(heteroModelWrong)
+plot(heteroResWrong)
+testDispersion(heteroResWrong, plot=F)
 
-# conditional sim
-set_simcodes(heteroModel$obj, val="fix")
-heteroResC <- simulateResiduals(heteroModel)
-testDispersion(heteroResC, plot=F)
-
-# corrected model
+## CORRECT MODEL ----
 heteroModelCorrect <- glmmTMB(observedResponse ~ Environment1 + (1|group),
                               dispformula = ~Environment1,
                               family = nbinom2(), data = heteroData)
@@ -32,14 +32,31 @@ summary(heteroModelCorrect)
 heteroResCorrect <- simulateResiduals(heteroModelCorrect)
 plot(heteroResCorrect)
 testDispersion(heteroResCorrect, plot=F)
-# conditional sim
-set_simcodes(heteroModelCorrect$obj, val="fix")
-heteroResCorrectC<- simulateResiduals(heteroModelCorrect)
-testDispersion(heteroResCorrectC, plot=F)
-```
+
+## OTHER WRONG MODELS ----
+
+# zero inflated
+heteroModelZero <-  glmmTMB(observedResponse ~ Environment1 + (1|group),
+                            ziformula =  ~1,
+                            family = poisson(), data = heteroData)
+heteroResZero <- simulateResiduals(heteroModelZero)
+plot(heteroResZero)
+testDispersion(heteroResZero, plot=F)
+
+# overdispersed
+heteroModelOver <-  glmmTMB(observedResponse ~ Environment1 + (1|group),
+                            family = nbinom2(), data = heteroData)
+heteroResOver <- simulateResiduals(heteroModelOver)
+plot(heteroResOver)
+testDispersion(heteroResOver, plot=F)
+plotResiduals(heteroResOver, form = heteroData$Environment1, absoluteDeviation = T)
+
+## COMPARING MODELS ----
+bbmle::AICctab(heteroModelWrong,heteroModelCorrect,heteroModelZero, heteroModelOver)
 
 
-```{r}
+
+# ZERO-INFLATION -----
 set.seed(5) 
 zeroData <- createData(sampleSize = 500, intercept = 2,
                        randomEffectVariance = 0.01,
@@ -48,19 +65,19 @@ ggplot(zeroData, aes(x=Environment1, y=observedResponse))+
   geom_point() +
   geom_smooth(method="glm", method.args = list(family="poisson"))
 
-zeroModel <- glmmTMB(observedResponse ~ Environment1 + (1|group), 
+zeroModelWrong <- glmmTMB(observedResponse ~ Environment1 + (1|group), 
                      family = "poisson", data = zeroData)
-summary(zeroModel)
+summary(zeroModelWrong)
 
 # unconditional sim
-zeroRes <- simulateResiduals(zeroModel)
-plot(zeroRes)
-testDispersion(zeroRes, plot=F)
+zeroResWrong <- simulateResiduals(zeroModelWrong)
+plot(zeroResWrong)
+testDispersion(zeroResWrong, plot=F)
 
 # conditional sim
-set_simcodes(zeroModel$obj, val="fix")
-zeroResC <- simulateResiduals(zeroModel)
-testDispersion(zeroResC, plot=F)
+set_simcodes(zeroModelWrong$obj, val="fix")
+zeroResWrongC <- simulateResiduals(zeroModelWrong)
+testDispersion(zeroResWrongC, plot=F)
 
 # corrected model
 zeroModelCorrect <- glmmTMB(observedResponse ~ Environment1 + (1|group),
@@ -75,15 +92,31 @@ set_simcodes(zeroModelCorrect$obj, val="fix")
 zeroResCorrectC<- simulateResiduals(zeroModelCorrect)
 testDispersion(zeroResCorrectC, plot=F)
 
-plot(ggpredict(zeroModelCorrect, term="Environment1", type = "zi_prob")) +
-  ylim(0,1)
+
+## OTHER WRONG MODELS ----
+
+# heteroscedasticity
+zeroModelHetero <-  glmmTMB(observedResponse ~ Environment1 + (1|group),
+                            dispformula =  ~ Environment1,
+                            family = poisson(), data = zeroData)
+zeroResHetero <- simulateResiduals(zeroModelHetero)
+plot(zeroResHetero)
+testDispersion(zeroResHetero, plot=F)
+
+# overdispersed
+zeroModelOver <-  glmmTMB(observedResponse ~ Environment1 + (1|group),
+                            family = nbinom2(), data = zeroData)
+zeroResOver <- simulateResiduals(zeroModelOver)
+plot(zeroResOver)
+testDispersion(zeroResOver, plot=F)
+
+## COMPARING MODELS ----
+bbmle::AICctab(zeroModelWrong,zeroModelCorrect,zeroModelHetero, zeroModelOver)
 
 
 
-```
 
-
-```{r}
+# REAL OVERDISPERSION -----
 set.seed(5) 
 overData <- createData(sampleSize = 500, intercept = 1,
                        randomEffectVariance = 0.01,
@@ -92,19 +125,19 @@ ggplot(overData, aes(x=Environment1, y=observedResponse))+
   geom_point() +
   geom_smooth(method="glm", method.args = list(family="poisson"))
 
-overModel <- glmmTMB(observedResponse ~ Environment1 + (1|group), 
+overModelWrong <- glmmTMB(observedResponse ~ Environment1 + (1|group), 
                      family = "poisson", data = overData)
-summary(overModel)
+summary(overModelWrong)
 
 # unconditional sim
-overRes <- simulateResiduals(overModel)
-plot(overRes)
-testDispersion(overRes, plot=F)
+overResWrong <- simulateResiduals(overModelWrong)
+plot(overResWrong)
+testDispersion(overResWrong, plot=F)
 
 # conditional sim
-set_simcodes(overModel$obj, val="fix")
-overResC <- simulateResiduals(overModel)
-testDispersion(overResC, plot=F)
+set_simcodes(overModelWrong$obj, val="fix")
+overResWrongC <- simulateResiduals(overModelWrong)
+testDispersion(overResWrongC, plot=F)
 
 # corrected model
 overModelCorrect <- glmmTMB(observedResponse ~ Environment1 + (1|group),
@@ -118,4 +151,25 @@ set_simcodes(overModelCorrect$obj, val="fix")
 overResCorrectC<- simulateResiduals(overModelCorrect)
 testDispersion(overResCorrectC, plot=F)
 
-```
+## OTHER WRONG MODELS ----
+
+# heteroscedasticity
+overModelHetero <-  glmmTMB(observedResponse ~ Environment1 + (1|group),
+                            dispformula =  ~ Environment1,
+                            family = poisson(), data = overData)
+overResHetero <- simulateResiduals(overModelHetero)
+plot(overResHetero)
+testDispersion(overResHetero)
+
+# zero inflated
+overModelZero <-  glmmTMB(observedResponse ~ Environment1 + (1|group),
+                            ziformula =  ~1,
+                            family = poisson(), data = overData)
+overResZero <- simulateResiduals(overModelZero)
+plot(overResZero)
+testDispersion(overResZero, plot=F)
+
+## COMPARING MODELS ----
+bbmle::AICctab(overModelWrong,overModelCorrect,overModelHetero, overModelZero)
+
+
