@@ -38,7 +38,7 @@ theme_set(theme_cowplot() + theme(panel.background = element_rect(color="black")
 source("simulations_problems.R")
 ```
 
-## Ecological data modeling {.smaller}
+## Ecological data analysis {.smaller}
 
 <p style="text-align: center;"> Increased complexity and flexibility in ecological data modeling: </p>
 
@@ -81,12 +81,13 @@ source("simulations_problems.R")
 ::: notes
 Modeling ecological data is becoming a complex endeavour. Researchers have now
 great flexibility in model structure to address diverse data challenges, for
-example with the use of GLMs and many different distributions to fit their data,
+example with the use of GLMs and many different distributions to best fit their data,
 or using a mixture models to deal with an excess of zeros, or even having a
 hierarchical model like GLMMs. However, we see relatively fewer tools for
 diagnosing model fit and checking the model's assumptions. The problem is that
 if we fail in checking our model, we are not sure how reliable are the results
 of our models.
+And I'm going to present here one very important problem many ecologists face when working with count data...
 :::
 
 ## Dispersion problems in count data {.smaller}
@@ -117,50 +118,132 @@ distribution** used for modeling:
 <p style="text-align: center; font-size: 44px; color: red;"> **UNDER or OVERDISPERSION** </p>
 
 ::: notes
-For example, many datasets in ecology are count data, form example, species
-richness, individual abundances, or the proportion of success within a certain
-number of trials. Those datasets are usually modeled using GLMs with a Poisson
-distribution or a Binomial distribution. I bet you have an example in your mind
-with this kind of data and using one of these distributions. However, a problem
-that is more common in ecology than the literature would suggest is the over or
-underdispersion, that is, when the dataset has more or less variability than
+I'm pretty sure that many in the audience had alread to deal with count data, for example, species richness, individual abundances, or the proportion of success within a certain number of trials. 
+Those datasets are usually modeled using GLMs with a Poisson distribution or a Binomial distribution. 
+However, a problem that is very common in ecology is the phenomenon of over or underdispersion, that is, when the dataset has more or less variability than
 expected by the distribution you are using to model it. It happens because these
 two distributions, the most common ones used in ecological modeling, have a
-specific and fixed mean -variance relationship. For example, for the Poisson,
+specific and fixed mean-variance relationship. For example, for the Poisson,
 the mean of the distribution is also the variance.
+This problem is more common that we may expect from literature, but it is simply because people don't check it properly.
 :::
 
-## Causes of dispersion problems {.smaller}
+## GOALS {.smaller}
 
 \
 
--   **Heteroscedasticity:** variance increases/decreases with a predictor
+- Aware ecologists of dispersion problems with count data
 
 \
 
--   **Zero-inflation:** more zeros than expected by the model/distribution
+- Identify and describe the 3 main causes by using model diagnostics tools with `DHARMa`
 
 \
 
--   **"Real" overdispersion:** more variance that expected by the
-    model/distribution.
+- Show modeling solutions for these causes
+
+::: notes
+So, the goal of this presentation is to ...  
+:::
+
+## 3 causes of dispersion problems  {.smaller}
+
+::::: columns
+::: {.column width="33%"}
+**"Real" overdispersion:**
+![](images/plot_overdispersion2.png)
+More variance that expected by the model.
+:::
+
+::: {.column width="33%"}
+**Heteroscedasticity:** 
+
+:::
+
+::: {.column width="34%"}
+**Zero-inflation:**
+
+:::
+:::::
+
 
 ::: aside
-These are the main causes, there are more.
+Examples for **OVERDISPERSION** for the Poisson distribution.
 :::
 
 ::: notes
-But not all overdispersion problem in your data has the same cause. Dispersion
-problems may arrise from different sources, and my goal here is to show you
-these problems and how to better detect it and solve it once you face it in your
-own data. I believe that being able to distinguish between these 3 main
-dispersion problems is not just important for a better model fit, but also it
-may provide more information from your system other than just modeling the mean.
-Knowing how and possible causes of larger variability in your data may also
-bring ecological information. To do that, I'll show you the residual diagnostics
-for GLMMs using DHARMa, and apply model diagnostics for each dispersion problem
-with hypothetical examples.
+Let's start with the 3 main causes of having more or less variability in your data than expected by your model.
+Here I will focus on the overdipsersion problem, for simplicity. Each plot is a graphical representation to the problem. Let's pretend we have some species abundance data, that varies with an enviromental variable. In red are the datasets with larger variation than expected by the Poisson model, with data in green and the fitted line in green tool.
+The first one is what we call "real" overdispersion in contrast with the two other "apparent"overdispersion. We see that red data has more variability than expected by the poisson, what we call Extra-Poisson variaance and we could, for example model, it as a Negative Binomial GLM.
 :::
+
+## 3 causes of dispersion problems {.smaller}
+
+::::: columns
+::: {.column width="33%"}
+**"Real" overdispersion:**
+![](images/plot_overdispersion2.png)
+More variance that expected by the model.
+:::
+
+::: {.column width="33%"}
+**Heteroscedasticity:** 
+![](images/plot_heteroscedasticity2.png)
+Variance increases/ decreases with a predictor.
+:::
+
+::: {.column width="34%"}
+**Zero-inflation:**
+
+:::
+:::::
+
+
+::: aside
+Examples for **OVERDISPERSION** for the Poisson distribution.
+:::
+
+::: notes
+Heteroscedasticity, is also possible in count data, and different from what we had before, the variance in our example is increasing with the environmental variable. So the "extra poisson variance has a different pattern. Although you can't distinguish between those to causes just by looking at the plot.
+:::
+
+
+## 3 causes of dispersion problems {.smaller}
+
+::::: columns
+::: {.column width="33%"}
+**"Real" overdispersion:**
+![](images/plot_overdispersion2.png)
+More variance that expected by the model.
+:::
+
+::: {.column width="33%"}
+**Heteroscedasticity:** 
+![](images/plot_heteroscedasticity2.png)
+Variance increases/ decreases with a predictor.
+:::
+
+::: {.column width="34%"}
+**Zero-inflation:**
+![](images/plot_zeroinflation2.png)
+More zeros than expected by the model.
+:::
+:::::
+
+
+
+
+::: aside
+Examples for **OVERDISPERSION** for the Poisson distribution.
+:::
+
+::: notes
+The last case I'm talking about is very common in observational/ field collected data, is the presence of more zeros thant expected by the model. Which means you may have more than one process going on in your system, one for the presence/absence of the species, another for their abundances, once they are present.
+
+For all this problems, we can see that the green Poisson model adjusted will fail in predicting observations that are too far, given that there are extra variability that you are ignoring. If you choose to ignore it, there will be consequences...
+:::
+
+
 
 ## Consequences of dispersion problems {.smaller}
 
@@ -180,6 +263,14 @@ with hypothetical examples.
 -   Missing the opportunity to learn and get more info from your data/system.
     Ecological meanings for modeling/understanding unexpected variability?
 
+::: notes
+If you ignore these problems in your model, the most clear consequence is that you have estimated too small standard errors for your estimates, this means that you think you have lower uncertainty, and smaller confidence intervals, but in reality your data says the opposite. This increases the chance of the type I error, that would tell you you have an significant effect, but this doesn't exist. maybe that's why people prefer to ignore these problems when fitting model to data ?
+Sometimes, depending on the complexity of your model and data, you may also have wrong estimates, that is, you estimate the slope of the realtionship of the abundance with your environmental variable, but this is wrong, and you will predict very poorly from your data. Especially if you have zero-inflation processes behind your data.
+
+And what I really think is that, you are also ignoring how to learn more from your model, for example, if you find out that there is a variable that is increasing the variability in abundances, wouldn't it be a cool ecological result?
+:::
+
+
 ##  {background-image="images/background.png"}
 
 \
@@ -193,6 +284,11 @@ with hypothetical examples.
 \
 
 \
+
+::: notes
+Ok so I showed you the problems and showed also that the patterns sometimes are not easy to see from the data itself. We have to fit a model and search for the problems in the residuals. And here it comes the DHARMa package and the ways you can detect some of the dispersion problems.
+:::
+
 
 ## Residual diagnostics with `DHARMa` {.smaller}
 
@@ -230,7 +326,7 @@ values, reprsented by these 3 black horizontal lines. Now, let's check DHARMa
 residuals can detect dispersion problems in the data...
 :::
 
-## Detecting dispersion problems with `DHARMa` {.smaller}
+## Detecting dispersion problems: `DHARMa` {.smaller}
 
 Create DHARMa residuals
 
@@ -259,6 +355,8 @@ testZeroInflation(DHARMaRresiduals)
 ```
 
 ## Solving dispersion problems: `glmmTMB` {.smaller}
+
+\
 
 Overdispersion
 
@@ -446,9 +544,9 @@ Problem Solved!
 -   Sometimes, residual patterns will not tell you which is the cause of
     overdispersion. E.g.:
     
-      -  Real cause is 'overdispersion' but will have significant test for zero-inflation, and vice-versa.
+      -  'Real' overdispersion will show significant test for zero-inflation, and vice-versa.
       
-      - Overdispersion and zero-inflation causes can have significant heteroscedasticity
+      - 'Real' overdispersion and zero-inflation may have significant heteroscedasticity/.
 
 \
 

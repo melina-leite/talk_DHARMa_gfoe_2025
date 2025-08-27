@@ -216,8 +216,8 @@ Melina de Souza Leite
 </div>
 
 </section>
-<section id="ecological-data-modeling" class="slide level2 smaller">
-<h2>Ecological data modeling</h2>
+<section id="ecological-data-analysis" class="slide level2 smaller">
+<h2>Ecological data analysis</h2>
 <p style="text-align: center;">
 Increased complexity and flexibility in ecological data modeling:
 </p>
@@ -254,7 +254,7 @@ Increased complexity and flexibility in ecological data modeling:
 <strong>Can you trust your model?</strong>
 </p>
 <aside class="notes">
-<p>Modeling ecological data is becoming a complex endeavour. Researchers have now great flexibility in model structure to address diverse data challenges, for example with the use of GLMs and many different distributions to fit their data, or using a mixture models to deal with an excess of zeros, or even having a hierarchical model like GLMMs. However, we see relatively fewer tools for diagnosing model fit and checking the model’s assumptions. The problem is that if we fail in checking our model, we are not sure how reliable are the results of our models.</p>
+<p>Modeling ecological data is becoming a complex endeavour. Researchers have now great flexibility in model structure to address diverse data challenges, for example with the use of GLMs and many different distributions to best fit their data, or using a mixture models to deal with an excess of zeros, or even having a hierarchical model like GLMMs. However, we see relatively fewer tools for diagnosing model fit and checking the model’s assumptions. The problem is that if we fail in checking our model, we are not sure how reliable are the results of our models. And I’m going to present here one very important problem many ecologists face when working with count data…</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -295,7 +295,38 @@ Increased complexity and flexibility in ecological data modeling:
 <strong>UNDER or OVERDISPERSION</strong>
 </p>
 <aside class="notes">
-<p>For example, many datasets in ecology are count data, form example, species richness, individual abundances, or the proportion of success within a certain number of trials. Those datasets are usually modeled using GLMs with a Poisson distribution or a Binomial distribution. I bet you have an example in your mind with this kind of data and using one of these distributions. However, a problem that is more common in ecology than the literature would suggest is the over or underdispersion, that is, when the dataset has more or less variability than expected by the distribution you are using to model it. It happens because these two distributions, the most common ones used in ecological modeling, have a specific and fixed mean -variance relationship. For example, for the Poisson, the mean of the distribution is also the variance.</p>
+<p>I’m pretty sure that many in the audience had alread to deal with count data, for example, species richness, individual abundances, or the proportion of success within a certain number of trials. Those datasets are usually modeled using GLMs with a Poisson distribution or a Binomial distribution. However, a problem that is very common in ecology is the phenomenon of over or underdispersion, that is, when the dataset has more or less variability than expected by the distribution you are using to model it. It happens because these two distributions, the most common ones used in ecological modeling, have a specific and fixed mean-variance relationship. For example, for the Poisson, the mean of the distribution is also the variance. This problem is more common that we may expect from literature, but it is simply because people don’t check it properly.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+</section>
+<section id="goals" class="slide level2 smaller">
+<h2>GOALS</h2>
+<p><br>
+</p>
+<ul>
+<li>Aware ecologists of dispersion problems with count data</li>
+</ul>
+<p><br>
+</p>
+<ul>
+<li>Identify and describe the 3 main causes by using model diagnostics tools with <code>DHARMa</code></li>
+</ul>
+<p><br>
+</p>
+<ul>
+<li>Show modeling solutions for these causes</li>
+</ul>
+<aside class="notes">
+<p>So, the goal of this presentation is to …</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -309,25 +340,18 @@ Increased complexity and flexibility in ecological data modeling:
       }</style></aside>
 </section>
 <section id="causes-of-dispersion-problems" class="slide level2 smaller">
-<h2>Causes of dispersion problems</h2>
-<p><br>
-</p>
-<ul>
-<li><strong>Heteroscedasticity:</strong> variance increases/decreases with a predictor</li>
-</ul>
-<p><br>
-</p>
-<ul>
-<li><strong>Zero-inflation:</strong> more zeros than expected by the model/distribution</li>
-</ul>
-<p><br>
-</p>
-<ul>
-<li><strong>“Real” overdispersion:</strong> more variance that expected by the model/distribution.</li>
-</ul>
+<h2>3 causes of dispersion problems</h2>
+<div class="columns">
+<div class="column" style="width:33%;">
+<p><strong>“Real” overdispersion:</strong> <img data-src="images/plot_overdispersion2.png"> More variance that expected by the model.</p>
+</div><div class="column" style="width:33%;">
+<p><strong>Heteroscedasticity:</strong></p>
+</div><div class="column" style="width:34%;">
+<p><strong>Zero-inflation:</strong></p>
+</div></div>
 
 <aside class="notes">
-<p>But not all overdispersion problem in your data has the same cause. Dispersion problems may arrise from different sources, and my goal here is to show you these problems and how to better detect it and solve it once you face it in your own data. I believe that being able to distinguish between these 3 main dispersion problems is not just important for a better model fit, but also it may provide more information from your system other than just modeling the mean. Knowing how and possible causes of larger variability in your data may also bring ecological information. To do that, I’ll show you the residual diagnostics for GLMMs using DHARMa, and apply model diagnostics for each dispersion problem with hypothetical examples.</p>
+<p>Let’s start with the 3 main causes of having more or less variability in your data than expected by your model. Here I will focus on the overdipsersion problem, for simplicity. Each plot is a graphical representation to the problem. Let’s pretend we have some species abundance data, that varies with an enviromental variable. In red are the datasets with larger variation than expected by the Poisson model, with data in green and the fitted line in green tool. The first one is what we call “real” overdispersion in contrast with the two other “apparent”overdispersion. We see that red data has more variability than expected by the poisson, what we call Extra-Poisson variaance and we could, for example model, it as a Negative Binomial GLM.</p>
 <style type="text/css">
         span.MJX_Assistive_MathML {
           position:absolute!important;
@@ -340,7 +364,62 @@ Increased complexity and flexibility in ecological data modeling:
           display:block!important;
       }</style></aside>
 <aside><div>
-<p>These are the main causes, there are more.</p>
+<p>Examples for <strong>OVERDISPERSION</strong> for the Poisson distribution.</p>
+</div></aside></section>
+<section id="causes-of-dispersion-problems-1" class="slide level2 smaller">
+<h2>3 causes of dispersion problems</h2>
+<div class="columns">
+<div class="column" style="width:33%;">
+<p><strong>“Real” overdispersion:</strong> <img data-src="images/plot_overdispersion2.png"> More variance that expected by the model.</p>
+</div><div class="column" style="width:33%;">
+<p><strong>Heteroscedasticity:</strong> <img data-src="images/plot_heteroscedasticity2.png"> Variance increases/ decreases with a predictor.</p>
+</div><div class="column" style="width:34%;">
+<p><strong>Zero-inflation:</strong></p>
+</div></div>
+
+<aside class="notes">
+<p>Heteroscedasticity, is also possible in count data, and different from what we had before, the variance in our example is increasing with the environmental variable. So the “extra poisson variance has a different pattern. Although you can’t distinguish between those to causes just by looking at the plot.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+<aside><div>
+<p>Examples for <strong>OVERDISPERSION</strong> for the Poisson distribution.</p>
+</div></aside></section>
+<section id="causes-of-dispersion-problems-2" class="slide level2 smaller">
+<h2>3 causes of dispersion problems</h2>
+<div class="columns">
+<div class="column" style="width:33%;">
+<p><strong>“Real” overdispersion:</strong> <img data-src="images/plot_overdispersion2.png"> More variance that expected by the model.</p>
+</div><div class="column" style="width:33%;">
+<p><strong>Heteroscedasticity:</strong> <img data-src="images/plot_heteroscedasticity2.png"> Variance increases/ decreases with a predictor.</p>
+</div><div class="column" style="width:34%;">
+<p><strong>Zero-inflation:</strong> <img data-src="images/plot_zeroinflation2.png"> More zeros than expected by the model.</p>
+</div></div>
+
+<aside class="notes">
+<p>The last case I’m talking about is very common in observational/ field collected data, is the presence of more zeros thant expected by the model. Which means you may have more than one process going on in your system, one for the presence/absence of the species, another for their abundances, once they are present.</p>
+<p>For all this problems, we can see that the green Poisson model adjusted will fail in predicting observations that are too far, given that there are extra variability that you are ignoring. If you choose to ignore it, there will be consequences…</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
+<aside><div>
+<p>Examples for <strong>OVERDISPERSION</strong> for the Poisson distribution.</p>
 </div></aside></section>
 <section id="consequences-of-dispersion-problems" class="slide level2 smaller">
 <h2>Consequences of dispersion problems</h2>
@@ -360,6 +439,20 @@ Increased complexity and flexibility in ecological data modeling:
 <ul>
 <li>Missing the opportunity to learn and get more info from your data/system. Ecological meanings for modeling/understanding unexpected variability?</li>
 </ul>
+<aside class="notes">
+<p>If you ignore these problems in your model, the most clear consequence is that you have estimated too small standard errors for your estimates, this means that you think you have lower uncertainty, and smaller confidence intervals, but in reality your data says the opposite. This increases the chance of the type I error, that would tell you you have an significant effect, but this doesn’t exist. maybe that’s why people prefer to ignore these problems when fitting model to data ? Sometimes, depending on the complexity of your model and data, you may also have wrong estimates, that is, you estimate the slope of the realtionship of the abundance with your environmental variable, but this is wrong, and you will predict very poorly from your data. Especially if you have zero-inflation processes behind your data.</p>
+<p>And what I really think is that, you are also ignoring how to learn more from your model, for example, if you find out that there is a variable that is increasing the variability in abundances, wouldn’t it be a cool ecological result?</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
 </section>
 <section id="section" class="slide level2" data-background-image="images/background.png">
 <h2></h2>
@@ -375,6 +468,19 @@ Detecting dispersion problems with <code>DHARMa</code>
 </p>
 <p><br>
 </p>
+<aside class="notes">
+<p>Ok so I showed you the problems and showed also that the patterns sometimes are not easy to see from the data itself. We have to fit a model and search for the problems in the residuals. And here it comes the DHARMa package and the ways you can detect some of the dispersion problems.</p>
+<style type="text/css">
+        span.MJX_Assistive_MathML {
+          position:absolute!important;
+          clip: rect(1px, 1px, 1px, 1px);
+          padding: 1px 0 0 0!important;
+          border: 0!important;
+          height: 1px!important;
+          width: 1px!important;
+          overflow: hidden!important;
+          display:block!important;
+      }</style></aside>
 </section>
 <section id="residual-diagnostics-with-dharma" class="slide level2 smaller">
 <h2>Residual diagnostics with <code>DHARMa</code></h2>
@@ -401,8 +507,8 @@ Detecting dispersion problems with <code>DHARMa</code>
           display:block!important;
       }</style></aside>
 </section>
-<section id="detecting-dispersion-problems-with-dharma" class="slide level2 smaller">
-<h2>Detecting dispersion problems with <code>DHARMa</code></h2>
+<section id="detecting-dispersion-problems-dharma" class="slide level2 smaller">
+<h2>Detecting dispersion problems: <code>DHARMa</code></h2>
 <p>Create DHARMa residuals</p>
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb1"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href=""></a>DHARMaResiduals <span class="ot">&lt;-</span> <span class="fu">simulateResiduals</span>(model)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
@@ -424,6 +530,8 @@ Detecting dispersion problems with <code>DHARMa</code>
 </section>
 <section id="solving-dispersion-problems-glmmtmb" class="slide level2 smaller">
 <h2>Solving dispersion problems: <code>glmmTMB</code></h2>
+<p><br>
+</p>
 <p>Overdispersion</p>
 <div class="cell" data-layout-align="center">
 <div class="sourceCode cell-code" id="cb5"><pre class="sourceCode numberSource r number-lines code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href=""></a><span class="fu">glmmTMB</span>(observedResponse <span class="sc">~</span> Enviroment1, </span>
@@ -677,8 +785,8 @@ alternative hypothesis: two.sided</code></pre>
 <ul>
 <li><p>Sometimes, residual patterns will not tell you which is the cause of overdispersion. E.g.:</p>
 <ul>
-<li><p>Real cause is ‘overdispersion’ but will have significant test for zero-inflation, and vice-versa.</p></li>
-<li><p>Overdispersion and zero-inflation causes can have significant heteroscedasticity</p></li>
+<li><p>‘Real’ overdispersion will show significant test for zero-inflation, and vice-versa.</p></li>
+<li><p>‘Real’ overdispersion and zero-inflation may have significant heteroscedasticity/.</p></li>
 </ul></li>
 </ul>
 <p><br>

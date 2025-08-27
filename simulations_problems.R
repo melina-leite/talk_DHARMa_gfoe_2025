@@ -1,4 +1,16 @@
 
+
+# POISSON NO PROBLEMS -----
+
+set.seed(5)
+poisData <- createData(500, intercept = 0.5, 
+                       family=poisson(),
+                       randomEffectVariance = 0.01, )
+
+
+
+
+
 # HETEROSCEDASTICITY -----
 
 ## DATA ----
