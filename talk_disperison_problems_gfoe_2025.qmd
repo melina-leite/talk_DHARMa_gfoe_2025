@@ -18,10 +18,11 @@ author:
 #     embed-resources: true
 format:
   revealjs:
+    width: 1280 #16:9 hd
+    height: 720
+    theme:  [default, style_melina.scss]
+    embed-resources: true
     slide-number: true
-editor: 
-  markdown: 
-    wrap: 80
 ---
 
 ```{r, echo=F, warning=F, message=F, results='hide',fig.keep='none'}
@@ -90,7 +91,9 @@ of our models.
 And I'm going to present here one very important problem many ecologists face when working with count data...
 :::
 
-## Dispersion problems in count data {.smaller}
+## Dispersion problems in count data  {.smaller}
+
+\
 
 ::::: columns
 ::: {.column width="50%"}
@@ -114,6 +117,8 @@ And I'm going to present here one very important problem many ecologists face wh
 
 Problem when data has **more or less variability than expected by the
 distribution** used for modeling:
+
+\
 
 <p style="text-align: center; font-size: 44px; color: red;"> **UNDER or OVERDISPERSION** </p>
 
@@ -149,19 +154,20 @@ So, the goal of this presentation is to ...
 ## 3 causes of dispersion problems  {.smaller}
 
 ::::: columns
-::: {.column width="33%"}
-**"Real" overdispersion:**
-![](images/plot_overdispersion2.png)
+::: {.column width="33%"} 
+<p style="text-align: center;">**"Real" overdispersion:** </p>
+![](images/plot_overdispersion2.png){fig-align="center" width="300"}
+
 More variance that expected by the model.
 :::
 
 ::: {.column width="33%"}
-**Heteroscedasticity:** 
+<p style="text-align: center;">**Heteroscedasticity:**  </p>
 
 :::
 
 ::: {.column width="34%"}
-**Zero-inflation:**
+<p style="text-align: center;">**Zero-inflation:** </p>
 
 :::
 :::::
@@ -181,19 +187,21 @@ The first one is what we call "real" overdispersion in contrast with the two oth
 
 ::::: columns
 ::: {.column width="33%"}
-**"Real" overdispersion:**
-![](images/plot_overdispersion2.png)
+<p style="text-align: center;">**"Real" overdispersion:** </p>
+![](images/plot_overdispersion2.png){fig-align="center" width="300"}
+
 More variance that expected by the model.
 :::
 
 ::: {.column width="33%"}
-**Heteroscedasticity:** 
-![](images/plot_heteroscedasticity2.png)
+<p style="text-align: center;"> **Heteroscedasticity:**  </p>
+![](images/plot_heteroscedasticity2.png){fig-align="center" width="300"}
+
 Variance increases/ decreases with a predictor.
 :::
 
 ::: {.column width="34%"}
-**Zero-inflation:**
+<p style="text-align: center;"> **Zero-inflation:** </p>
 
 :::
 :::::
@@ -212,20 +220,25 @@ Heteroscedasticity, is also possible in count data, and different from what we h
 
 ::::: columns
 ::: {.column width="33%"}
-**"Real" overdispersion:**
-![](images/plot_overdispersion2.png)
+
+<p style="text-align: center;"> **"Real" overdispersion:** </p>
+
+![](images/plot_overdispersion2.png){fig-align="center" width="300"}
+
 More variance that expected by the model.
 :::
 
 ::: {.column width="33%"}
-**Heteroscedasticity:** 
-![](images/plot_heteroscedasticity2.png)
+<p style="text-align: center;"> **Heteroscedasticity:** </p>
+![](images/plot_heteroscedasticity2.png){fig-align="center" width="300"}
+
 Variance increases/ decreases with a predictor.
 :::
 
 ::: {.column width="34%"}
-**Zero-inflation:**
-![](images/plot_zeroinflation2.png)
+<p style="text-align: center;"> **Zero-inflation:** </p>
+![](images/plot_zeroinflation2.png){fig-align="center" width="300"}
+
 More zeros than expected by the model.
 :::
 :::::
@@ -327,6 +340,8 @@ residuals can detect dispersion problems in the data...
 :::
 
 ## Detecting dispersion problems: `DHARMa` {.smaller}
+
+\
 
 Create DHARMa residuals
 
@@ -540,6 +555,7 @@ Problem Solved!
 
 ## Solving dispersion problems {.smaller}
 
+\
 
 -   Sometimes, residual patterns will not tell you which is the cause of
     overdispersion. E.g.:
