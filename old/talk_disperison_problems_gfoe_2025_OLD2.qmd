@@ -1,0 +1,653 @@
+---
+title: "Detecting dispersion problems in GLMMs" 
+#subtitle: "model diagnostics and validation with `DHARMa`"
+title-slide-attributes:
+    data-background-image: images/background.png
+author:
+  - name: Melina de Souza Leite
+    id: Post Doc
+    email: melina.souza-leite@ur.de
+    affiliation: 
+      - name: Postodoctoral Researcher
+        url: www.melinaleite.weebly.com
+      - name: University of Regensburg
+        url: https://www.uni-regensburg.de/biologie-vorklinische-medizin/forschen/arbeitsgruppen/ag-hartig
+# format:
+#   html:
+#     toc: true
+#     embed-resources: true
+format:
+  revealjs:
+    width: 1280 #16:9 hd
+    height: 720
+    theme:  [default, style_melina.scss]
+    embed-resources: true
+    slide-number: true
+---
+
+```{r, echo=F, warning=F, message=F, results='hide',fig.keep='none'}
+knitr::opts_chunk$set(cache = T, fig.align = 'center', echo = F, 
+                      warning = F, message = F,
+                      fig.height = 4, fig.width = 4)
+library(knitr)
+library(tidyverse)
+library(cowplot)
+library(DHARMa)
+library(glmmTMB)
+library(ggeffects)
+theme_set(theme_cowplot() + theme(panel.background = element_rect(color="black")))
+source("simulations_problems.R")
+```
+
+## Ecological data analysis {.smaller}
+
+\
+
+<p style="text-align: center;"> Increased complexity and flexibility in ecological data modeling: </p>
+
+::::: columns
+
+::: {.column width="10%"}
+:::
+::: {.column width="50%"}
+
+-
+
+-   Generalized linear modes (GLMs)
+
+-   Mixture models (e.g. zero-inflated GLMs)
+
+-   Hiearchical/Multilevel models, GLMMs
+:::
+
+::: {.column width="40%"}
+
+![](images/worried_man.jpg){fig-align="left"}
+
+:::
+:::::
+
+::::: columns
+::: {.column width="40%"}
+
+![](images/worried_woman.jpg){fig-align="right"}
+
+:::
+
+::: {.column width="60%"}
+
+\
+
+-   But still few tools for model diagnostics
+
+-   Problem: **failing to check model assumptions**
+:::
+:::::
+
+<p style="text-align: center; font-size: 44px;"> **Can you trust your model?** </p>
+
+::: notes
+Modeling ecological data is becoming a complex endeavour. Researchers have now
+great flexibility in model structure to address diverse data challenges, for
+example with the use of GLMs and many different distributions to best fit their data,
+or using a mixture models to deal with an excess of zeros, or even having a
+hierarchical model like GLMMs. However, we see relatively fewer tools for
+diagnosing model fit and checking the model's assumptions. The problem is that
+if we fail in checking our model, we are not sure how reliable are the results
+of our models.
+And I'm going to present here one very important problem many ecologists face when working with count data...
+:::
+
+## Dispersion problems in count data  {.smaller}
+
+::::: columns
+::: {.column width="50%"}
+-   Example count data:
+
+    -   Species richness
+    -   Abundance of indiviuals
+    -   Number of success (K) within a number of trials (N)
+    
+-   Modeling count data, GL(M)M distributions:
+
+    -   Poisson
+
+    -   Binomial (K/N) proportion
+:::
+
+
+::: {.column width="50%"}
+
+![](images/example.png)
+:::
+:::::
+
+Problem when data has **more or less variability than expected by the
+distribution** used for modeling:
+
+<p style="text-align: center; font-size: 44px; color: red;"> **UNDER or OVERDISPERSION** </p>
+
+::: notes
+I'm pretty sure that many in the audience had alread to deal with count data, for example, species richness, individual abundances, or the proportion of success within a certain number of trials. 
+Here I'm bringing a very simple example of a field study evaluating if the abundance of a plant species changes with a environmental gradient, for example soil moisture. 
+Those datasets are usually modeled using GLMs with a Poisson distribution or a Binomial distribution. 
+However, a problem that is very common in ecology is the phenomenon of over or underdispersion, that is, when the dataset has more or less variability than
+expected by the distribution you are using to model it. It happens because these
+two distributions, the most common ones used in ecological modeling, have a
+specific and fixed mean-variance relationship. For example, for the Poisson,
+the mean of the distribution is also the variance. That is, if you have lower mean, you have lower variance, but it is not always the case in ecological data
+This problem is more common that we may expect, simply because we don't check it properly.
+:::
+
+## GOALS {.smaller}
+
+\
+
+- Aware ecologists of dispersion problems with count data
+
+\
+
+- Identify and describe the 3 main causes by using model diagnostics tools with `DHARMa`
+
+\
+
+- Show some modeling solutions for these causes
+
+::: notes
+So, the goal of this presentation is to ...  
+:::
+
+## 3 causes of dispersion problems  {.smaller}
+
+::::: columns
+::: {.column width="33%"} 
+<p style="text-align: center;">**"Real" overdispersion:** </p>
+![](images/plot_overdispersion.png){fig-align="center" width="300"}
+
+<p style="text-align: center;"> Abundances vary more that expected by the model, in general. </p>
+:::
+
+::: {.column width="33%"}
+<p style="text-align: center;">**Heteroscedasticity:**  </p>
+
+:::
+
+::: {.column width="34%"}
+<p style="text-align: center;">**Zero-inflation:** </p>
+
+:::
+:::::
+
+
+::: aside
+Examples for **OVERDISPERSION** for the Poisson distribution.
+:::
+
+::: notes
+Let's start with the 3 main causes of having more or less variability in your data than expected by your model.
+Here I will focus on the overdipsersion problem, for simplicity, and use the example I showed before with the Poisson distribution. So we have the species abundances along an enviromental gradient. In green, we have the data behaving like a poisson distribution, so the species abundances increase with the gradient but there is no exta variability, then the fitted mean by the GLM model is the green line. 
+In red, I have a the datasets with larger variation than expected by the Poisson model. We see that the red points are more spread thant the green one. 
+This is what I'm calling here "real" overdispersion in contrast with the two other "apparent"overdispersion. Some would also call it Extra-Poisson variance and we could, for example, model,it with a Negative Binomial GLM.
+:::
+
+## 3 causes of dispersion problems {.smaller}
+
+::::: columns
+::: {.column width="33%"}
+<p style="text-align: center;">**"Real" overdispersion:** </p>
+![](images/plot_overdispersion.png){fig-align="center" width="300"}
+
+<p style="text-align: center;"> Abundances vary more that expected by the model, in general.</p>
+:::
+
+::: {.column width="33%"}
+<p style="text-align: center;"> **Heteroscedasticity:**  </p>
+![](images/plot_heteroscedasticity.png){fig-align="center" width="300"}
+
+<p style="text-align: center;"> Abundances variation increases with the environmental gradient. </p>
+:::
+
+::: {.column width="34%"}
+<p style="text-align: center;"> **Zero-inflation:** </p>
+
+:::
+:::::
+
+
+::: aside
+Examples for **OVERDISPERSION** for the Poisson distribution.
+:::
+
+::: notes
+Heteroscedasticity, is also possible in count data, and different from what we had before, the variability here is increasing with the environmental variable. So the "extra poisson variance has a different pattern, although you can't distinguish between those causes just by looking at the plot.
+:::
+
+
+## 3 causes of dispersion problems {.smaller}
+
+::::: columns
+::: {.column width="33%"}
+
+<p style="text-align: center;"> **"Real" overdispersion:** </p>
+
+![](images/plot_overdispersion.png){fig-align="center" width="300"}
+
+<p style="text-align: center;"> Abundances vary more that expected by the model, in general. </p>
+:::
+
+::: {.column width="33%"}
+<p style="text-align: center;"> **Heteroscedasticity:** </p>
+![](images/plot_heteroscedasticity.png){fig-align="center" width="300"}
+
+<p style="text-align: center;"> Abundances variation increases with the environmental gradient. </p>
+:::
+
+::: {.column width="34%"}
+<p style="text-align: center;"> **Zero-inflation:** </p>
+![](images/plot_zeroinflation.png){fig-align="center" width="300"}
+
+<p style="text-align: center;"> More zero abundances than expected by the model. </p>
+:::
+:::::
+
+
+
+
+::: aside
+Examples for **OVERDISPERSION** for the Poisson distribution.
+:::
+
+::: notes
+The last case I'm talking about is very common in observational/ field collected data, is the presence of more zeros thant expected by the model. Which means you may have more than one process going on in your system, one for the presence/absence of the species, another for their abundances, once they are present.
+
+For all this problems, we can see that the green Poisson model adjusted will fail in predicting observations that are too far, given that there are extra variability that you are ignoring. If you choose to ignore it, there will be consequences...
+:::
+
+
+
+## Consequences of dispersion problems {.smaller}
+
+\
+
+::::: columns
+::: {.column width="50%"}
+-   Too small standard error of estimates -\> narrower confidence intervals
+
+-   Larger chance of type I error: find an effect when it doesn't exist
+
+-   Wrong estimates by ignoring other processes (e.g. zero-inflation causes) in
+    your data-generating process.
+
+
+-   Missing the opportunity to learn and get more info from your data.
+    Ecological meanings for modeling/understanding unexpected variability?
+:::
+
+::: {.column width="50%"}
+![](images/plot_consequence_IC.png){fig-align="center" width="500"}
+:::
+:::::
+
+
+
+::: notes
+If you ignore these problems in your model, the most clear consequence is that you have estimated too small standard errors for your estimates, this means that you think you have lower uncertainty, and smaller confidence intervals, but in reality your data says the opposite. This increases the chance of the type I error, that would tell you you have an significant effect, but this doesn't exist. maybe that's why people prefer to ignore these problems when fitting model to data ?
+Sometimes, depending on the complexity of your model and data, you may also have wrong estimates, that is, you estimate the slope of the realtionship of the abundance with your environmental variable, but this is wrong, and you will predict very poorly from your data. Especially if you have zero-inflation processes behind your data.
+
+And what I really think is that, you are also ignoring how to learn more from your model, for example, if you find out that there is a variable that is increasing the variability in abundances, wouldn't it be a cool ecological result?
+:::
+
+
+##  {background-image="images/background.png"}
+
+\
+
+![](images/Dharma_Wheel.png){fig-align="center" width="50"}
+
+\
+
+<p style="text-align: center; font-size: 60px;"> Detecting dispersion problems with `DHARMa` </p>
+
+\
+
+\
+
+::: notes
+Ok so I showed you the problems and showed also that the patterns sometimes are not easy to see from the data itself. We have to fit a model and search for the problems in the residuals. And here it comes the DHARMa package and the ways you can detect some of the dispersion problems.
+:::
+
+
+## Residual diagnostics with `DHARMa` {.smaller}
+
+-   Scaled quantile residuals -\> Simulating from the model
+
+-   Residuals between 0 and 1 for ANY model complexity or distribution
+
+-   Interpreted the SAME way:
+
+> If your model is correctly specified, i.e. your have the "data-generating
+> process", scaled quantile residuals will present a uniform "flat" distribution
+> between 0 and 1.
+
+```{r, fig.width=8}
+data <- createData(randomEffectVariance = 0)
+res <- simulateResiduals(glm(observedResponse ~ Environment1, data=data,
+                           family="poisson"))
+par(mfrow = c(1,2))
+plotQQunif(res, testUniformity = F, testOutliers = F, testDispersion = F)
+plotResiduals(res)
+```
+
+::: notes
+The DHARMa approach is to generate a specific type of residuals, the scale
+quantile residuals, by simulating many new datasets from your model. The scale
+residuals are standardized between 0 and 1 for any distribution and model
+complexity, and they should be interpreted the same way. That is, if your model
+is correctly specified, that means you have the data generating process, the
+residuals should present an uniform distribution, a flat distribution between
+zero and 1. These are the two main diagnostics plot from DHARMa, one
+quantile-quantile plot that you expect that the residuals (black dots) should
+align with the diagnoal red line, and the other the residuals agains the fitted
+values, which we would expect a uniform distribution of them along the fitted
+values, reprsented by these 3 black horizontal lines. Now, let's check DHARMa
+residuals can detect dispersion problems in the data...
+:::
+
+## Detecting dispersion problems: `DHARMa` {.smaller}
+
+\
+
+Create DHARMa residuals
+
+```{r, eval=F, echo=T}
+DHARMaResiduals <- simulateResiduals(model)
+```
+
+Test dispersion problems
+
+```{r, eval=F, echo=T}
+testDispersion(DHARMaResiduals)
+```
+
+Test heteroscedasticity
+
+```{r, eval=F, echo=T}
+plotResiduals(DHARMaResiduals, 
+              form = data$Environment1, # the predictor
+              absoluteDeviation = T)
+```
+
+Test zero inflation
+
+```{r, eval=F, echo=T}
+testZeroInflation(DHARMaRresiduals)
+```
+
+## Solving dispersion problems: `glmmTMB` {.smaller}
+
+\
+
+Overdispersion
+
+```{r, eval=F, echo=T}
+glmmTMB(observedResponse ~ Enviroment1, 
+        family = nbinom2(), ...) # from poisson()
+```
+
+Heteroscedasticity
+
+```{r, eval=F, echo=T}
+glmmTMB(observedResponse ~ Enviroment1, 
+        dispformula = ~ Enviroment1, # dispersion formula
+        family = nbinom2(), ...) # needs to be negative binomial
+```
+
+Zero-inflation
+
+```{r, eval=F, echo=T}
+glmmTMB(observedResponse ~ Enviroment1, 
+        ziformula = ~ 1, # zero-inflation formula / can add predictor
+        family = poisson(), ...) # can also be negative binomial
+```
+
+# What is the problem? {background-image="images/background.png"}
+
+## Problem 1 {.smaller}
+
+::::: columns
+::: {.column width="55%"}
+```{r, fig.height=6, fig.width=9}
+overRes <- simulateResiduals(overModelWrong)
+plot(overRes)
+```
+:::
+
+::: {.column width="45%"}
+```{r, eval=T, echo=T}
+testDispersion(overRes,plot=F)
+```
+:::
+:::::
+
+## Try a negative binomial model {.smaller}
+
+Modeling "real" overdispersion
+
+::::: columns
+::: {.column width="60%"}
+```{r, eval=F, echo=T}
+glmmTMB(observedResponse ~ Environment1 + (1|group),
+        family = nbinom2(), data = overData)
+```
+
+```{r,fig.width=6}
+overModelCorrect <- glmmTMB(observedResponse ~ Environment1 + (1|group),
+                            family = nbinom2(), data = overData)
+overResCorrect <- simulateResiduals(overModelCorrect)
+plot(overResCorrect)
+```
+:::
+
+::: {.column width="40%"}
+```{r}
+testDispersion(overResCorrect, plot=F)
+```
+
+--------------------------------------------------------------------------------
+
+```{r,eval=T}
+testZeroInflation(overResCorrect, plot=F)
+```
+:::
+:::::
+
+::: aside
+Problem solved!
+:::
+
+## Problem 2 {.smaller}
+
+::::: columns
+::: {.column width="55%"}
+```{r, fig.height=6, fig.width=9}
+heteroRes <- simulateResiduals(heteroModelWrong)
+plot(heteroRes)
+```
+:::
+
+::: {.column width="45%"}
+```{r, echo=F}
+testDispersion(heteroRes,plot=F)
+```
+:::
+:::::
+
+## Add a dispersion formula {.smaller}
+
+Modeling heteroscedasticity
+
+::::: columns
+::: {.column width="60%"}
+```{r, eval=F, echo=T}
+glmmTMB(observedResponse ~ Environment1 + (1|group),
+        dispformula = ~ Environment1,
+        family = nbinom2(), data = heteroData)
+```
+
+```{r fig.height=6, fig.width=9}
+plot(heteroResCorrect)
+#plotResiduals(heteroResCorrect,form=heteroData$Environment1, absoluteDeviation = T)
+```
+:::
+
+::: {.column width="40%"}
+```{r}
+testDispersion(heteroResCorrect, plot=F)
+```
+
+--------------------------------------------------------------------------------
+
+```{r,eval=T}
+testZeroInflation(heteroResCorrect, plot=F)
+```
+:::
+:::::
+
+::: aside
+Problem Solved!
+:::
+
+## Problem 3 {.smaller}
+
+::::: columns
+::: {.column width="55%"}
+```{r, fig.height=6, fig.width=9}
+plot(zeroResWrong)
+```
+:::
+
+::: {.column width="45%"}
+```{r, echo=F}
+testDispersion(zeroResWrong,plot=F)
+```
+:::
+:::::
+
+## Add a zero-inflation formula {.smaller}
+
+Modeling zero-inflation
+
+::::: columns
+::: {.column width="60%"}
+```{r, eval=F, echo=T}
+glmmTMB(observedResponse ~ Environment1 + (1|group),
+        ziformula =  ~ 1,
+        family = poisson(), data = zeroData)
+```
+
+```{r fig.height=6, fig.width=9}
+plot(zeroResCorrect)
+```
+:::
+
+::: {.column width="40%"}
+```{r}
+testDispersion(zeroResCorrect, plot=F)
+```
+
+--------------------------------------------------------------------------------
+
+```{r,eval=T}
+testZeroInflation(zeroResCorrect, plot=F)
+```
+:::
+:::::
+
+::: aside
+Problem Solved!
+:::
+
+## Solving dispersion problems {.smaller}
+
+\
+
+-   Sometimes, residual patterns will not tell you which is the cause of
+    overdispersion. E.g.:
+    
+      -  'Real' overdispersion will show significant test for zero-inflation, and vice-versa.
+      
+      - 'Real' overdispersion and zero-inflation may have significant heteroscedasticity/.
+
+\
+
+-   Additional check: fit models addressing the potential problems and
+    compare their fit (e.g. AIC, LRT) and residuals diagnostics.
+    
+
+::: aside
+Don't always assume the most complex/complicated model is the correct one!
+:::
+
+## Conclusion {.smaller}
+
+\
+
+-   There are many causes of dispersion problems in GLMMs
+
+\
+
+-   Use `DHARMa` residuals tools to detect them
+
+\
+
+-   Address the problem with adequate models, e.g, `glmmTMB`
+
+::: notes
+There are many other types of problems, especially talking about GLMMs, where
+the issue may not just be at the distribuion/observation level but also at the
+random effects level.
+:::
+
+## Take home message {.smaller}
+
+\
+
+-   Models should ALWAYS be checked: residual diagnostics!
+
+\
+
+-   Avoid the oversimplistic view of dispersion problems
+
+\
+
+-   Detecting and addressing the causes of dispersion problems may also be
+    informative for your system/data.
+
+::: aside
+Comming soon: Leite et al. *in prep.* Dispersion tests in GLMMs - a methods
+comparison and practical guide.
+:::
+
+##  {background-image="images/background.png"}
+
+\
+
+\
+
+\
+
+<p style="text-align: center; font-size: 70px;"> Thank you! </p>
+
+\
+
+<p style="text-align: center; font-size: 70px;"> Vielen Dank! </p>
+
+::: aside
+Acknowledgements to Florian Hartig, Max Pichler, and the Theoretical Ecology Lab
+group
+:::
+
+::: notes
+Talvez um QR CODE para o link dessa apresentação - ou htlm de exemplo no
+github - devo coloar no github do DHARMa, em material didático?
+:::
