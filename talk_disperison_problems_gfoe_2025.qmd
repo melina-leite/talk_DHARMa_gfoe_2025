@@ -1,8 +1,8 @@
 ---
-title: "Detecting dispersion problems in GLMMs" 
-#subtitle: "model diagnostics and validation with `DHARMa`"
+title: "Detecting dispersion problems in GLMMs"
 title-slide-attributes:
     data-background-image: images/background.png
+    data-notes: Hello everyone, thanks for coming, here I'll talk about a problem that many of you might have faced but maybe didn't know much about it, which is detecting dispersion problems in generalized linear models and the mixed-effects extension.
 author:
   - name: Melina de Souza Leite
     id: Post Doc
@@ -50,13 +50,13 @@ source("simulations_problems.R")
 
 \
 
-- High false positive rates (type I error) in studies
+- High **false positive rates** (type I error) in Ecological studies
 
 - A non-intentional cause is **failing in checking model's assumptions**
 
-- Researchers don't check models -> higher chances of false conclusions
+- Researchers **don't check models** -> higher chances of false conclusions
 
-- Few tools for model diagnostics of GLMs, GLMMs.
+- Few tools for **model diagnostics** of GLMs, GLMMs.
 :::
 
 ::: {.column width="30%"}
@@ -87,9 +87,10 @@ Ioannidis 2005; Parker & Nakagawa 2014; Fraser et al. 2018; Kelly 2019;
 :::
 
 ::: notes
-It is not new that in many scientific areas, there is a large amount of research with false positive rates, that is, when they claim they found a significant result, but this is not true.
-Among there are many questionable research practices that may lead to this problem, one that is usually non-intensional is failing in checking models assumptions. In reality, many simply don't even check models and this leads to higher chances of false and unreplicable conclusions. 
-This is especially important for generalized linear models and other more complex models, where there are few tools that ecologists may use for models diagnostics.
+Why is that important for, us, Ecologists?
+It is not new that in many scientific areas, including ecology, there is a large amount of research with false positive rates, that is, when they claim they found a significant result, but this is not true.
+There are many questionable research practices that may lead to this problem, one of them is failing in checking models assumptions. In reality, many researchers simply don't even check models and this leads to higher chances of false and unreplicable results. 
+This is especially important for generalized linear models and other more complex models, where there are few tools for models diagnostics.
 
 The question I start my presenteation is: can you trust your model?
 
@@ -129,14 +130,11 @@ distribution** used for modeling.
 
 
 ::: notes
-I'm pretty sure that many in the audience had alread to deal with count data, for example, species richness, individual abundances, or the proportion of success within a certain number of trials. 
+I'm pretty sure that many in the audience had modeled count data, for example, species richness or individual abundances.
 Here I'm bringing a very simple example of a field study evaluating if the abundance of a plant species changes with a environmental gradient, for example soil moisture. 
-Those datasets are usually modeled using GLMs with a Poisson distribution or a Binomial distribution. 
+Those datasets are usually modeled using GLMs with a Poisson distribution.
 However, a problem that is very common in ecology is the phenomenon of over or underdispersion, that is, when the dataset has more or less variability than
-expected by the distribution you are using to model it. It happens because these
-two distributions, the most common ones used in ecological modeling, have a
-specific and fixed mean-variance relationship. For example, for the Poisson,
-the mean of the distribution is also the variance. That is, if you have lower mean, you have lower variance, but it is not always the case in ecological data
+expected by the distribution you are using to model it. It happens because the Poisson distributions, for example, has a fixed mean-variance relationship: the mean of the distribution is also the variance. That is, if you have lower mean, you have lower variance, and vice-versa but it is not always the case in ecological data
 This problem is more common that we may expect, simply because we don't check it properly.
 :::
 
@@ -148,11 +146,11 @@ This problem is more common that we may expect, simply because we don't check it
 
 \
 
-- Identify and describe the 3 main causes by using model diagnostics tools with `DHARMa`
+- Identify and describe the 3 main causes by using model diagnostics tools with the `DHARMa` R package
 
 \
 
-- Show some modeling solutions for these causes
+- Show some modeling solutions for these causes, with the `glmmTMB` R package 
 
 ::: notes
 So, the goal of this presentation is to ...  
@@ -260,16 +258,20 @@ For all this problems, we can see that the green Poisson model adjusted will fai
 
 ::::: columns
 ::: {.column width="50%"}
--   Too small standard error of estimates -\> narrower confidence intervals
+**OVERDISPERSION**
 
--   Larger chance of type I error: find an effect when it doesn't exist
+-   Too small standard error / confidence intervals 
 
--   Wrong estimates by ignoring other processes (e.g. zero-inflation causes) in
-    your data-generating process.
+-   Larger chance of false positive results
+
+\
+
+Wrong estimates, especialy if ignoring other processes (e.g. zero-inflation causes) in your data-generating process.
 
 
--   Missing the opportunity to learn and get more info from your data.
-    Ecological meanings for modeling/understanding unexpected variability?
+\
+
+Missing the opportunity to learn more from your data. Ecological meanings for modeling unexpected variability.
 :::
 
 ::: {.column width="50%"}
@@ -329,8 +331,7 @@ plotResiduals(res)
 
 ::: notes
 The DHARMa approach is to generate a specific type of residuals, the scale
-quantile residuals, by simulating many new datasets from your model. The scale
-residuals are standardized between 0 and 1 for any distribution and model
+quantile residuals, by simulating many new datasets from your model. The advantange of these residuals is that it is standardized between 0 and 1 for any distribution and model
 complexity, and they should be interpreted the same way. That is, if your model
 is correctly specified, that means you have the data generating process, the
 residuals should present an uniform distribution, a flat distribution between
