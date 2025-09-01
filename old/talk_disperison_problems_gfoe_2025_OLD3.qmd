@@ -4,10 +4,12 @@ title-slide-attributes:
     data-background-image: images/background.png
     data-notes: Hello everyone, thanks for coming, here I'll talk about a problem that many of you might have faced but maybe didn't know much about it, which is detecting dispersion problems in generalized linear models and the mixed-effects extension.
 author:
-  - name: Melina de Souza Leite & Florian Hartig
+  - name: Melina de Souza Leite
     id: Post Doc
     email: melina.souza-leite@ur.de
     affiliation: 
+      - name: Postodoctoral Researcher
+        url: www.melinaleite.weebly.com
       - name: University of Regensburg
         url: https://www.uni-regensburg.de/biologie-vorklinische-medizin/forschen/arbeitsgruppen/ag-hartig
 # format:
@@ -80,7 +82,9 @@ source("simulations_problems.R")
 :::
 :::::
 
-
+::: aside
+Ioannidis 2005; Parker & Nakagawa 2014; Fraser et al. 2018; Kelly 2019; 
+:::
 
 ::: notes
 Why is that important for, us, Ecologists?
@@ -92,54 +96,53 @@ The question I start my presenteation is: can you trust your model?
 
 :::
 
-
-## OVERDispersion problems {.smaller}
-
-\
-
-<p style="text-align: center;">When data has **more variability than expected** by the model (GLM/GLMM) </p>
-
+## Dispersion problems in count data  {.smaller}
 
 ::::: columns
-
-::: {.column width="5%"}
-:::
-::: {.column width="45%"}
+::: {.column width="50%"}
 
 \
 
-**OVERDISPERSION**
+-   Example count data:
 
--   Too small standard error / confidence intervals 
+    -   Species richness
+    -   Abundance of individuals
+    
+-   Modeling with Poisson GLMs/GLMMs
+    
+\
 
--   Larger chance of **false positive** results
-
--   Much more common than previously thought
-
+<p style="text-align: center; font-size: 40px; color: red;"> **UNDER or OVERDISPERSION:** </p>
 
 :::
 
-::: {.column width="50%"}
-![](images/plot_overdispersion_IC.png){fig-align="center" width="400"}
 
+::: {.column width="50%"}
+
+![](images/example.png)
 :::
 :::::
 
 
 
+When data has **more or less variability than expected by the
+distribution** used for modeling.
+
+
 ::: notes
-One very important issue with model diagnostics is to detect dispersion problems, and the most common disperison problem is OVERDISPERSION, whe the data has more variability than expected by the model.
-If you ignore it, the most clear consequence is that you have estimated too small standard errors, this means that you think you have lower uncertainty, and smaller confidence intervals, but in reality your data says the opposite. This increases the chance of false positive results, and we saw the consequences of it for the scientific community.
-
-Here I'm showing a very common problem of a count data, for example the abundance of a species along a environmental gradient, that is modeled using a Poisson distribution. However, this count data has more variability than expected by the Poisson. So when we model it with a Poisson GLM, in red, we think we have larger confidence in the estimates, but this is wrong. In green, we have a model with another distribution, here negative binomial, that takes into account this extra variability in the count data.
+I'm pretty sure that many in the audience had modeled count data, for example, species richness or individual abundances.
+Here I'm bringing a very simple example of a field study evaluating if the abundance of a plant species changes with a environmental gradient, for example soil moisture. 
+Those datasets are usually modeled using GLMs with a Poisson distribution.
+However, a problem that is very common in ecology is the phenomenon of over or underdispersion, that is, when the dataset has more or less variability than
+expected by the distribution you are using to model it. It happens because the Poisson distributions, for example, has a fixed mean-variance relationship: the mean of the distribution is also the variance. That is, if you have lower mean, you have lower variance, and vice-versa but it is not always the case in ecological data
+This problem is more common that we may expect, simply because we don't check it properly.
 :::
-
 
 ## GOALS {.smaller}
 
 \
 
-- Aware ecologists of dispersion problems in GLMs/GLMMs
+- Aware ecologists of dispersion problems with count data
 
 \
 
@@ -153,342 +156,65 @@ Here I'm showing a very common problem of a count data, for example the abundanc
 So, the goal of this presentation is to ...  
 :::
 
-##  {background-image="images/background.png"}
-
-\
-
-![](images/Dharma_Wheel.png){fig-align="center" width="50"}
-
-\
-
-<p style="text-align: center; font-size: 60px;"> Detecting dispersion problems with `DHARMa` </p>
-
-\
-
-\
-
-::: notes
-Let me introduce you to the DHARMa package first...
-:::
-
-
-
-
-## Residual diagnostics with `DHARMa` {.smaller}
-
--   Scaled quantile residuals -\> Simulating from the model
-
--   Residuals between 0 and 1 for ANY model complexity or distribution
-
--   Interpreted the SAME way:
-
-```{r, fig.width=8}
-data <- createData(randomEffectVariance = 0)
-res <- simulateResiduals(glm(observedResponse ~ Environment1, data=data,
-                           family="poisson"))
-par(mfrow = c(1,2))
-plotQQunif(res, testUniformity = F, testOutliers = F, testDispersion = F)
-plotResiduals(res)
-```
-
-::: notes
-The DHARMa approach is to generate a specific type of residuals, the scale
-quantile residuals, by simulating many new datasets from your model. The advantange of these residuals is that it is standardized between 0 and 1 for any distribution and model
-complexity, and they should be interpreted the same way. That is, if your model
-is correctly specified, that means you have the data generating process, the
-residuals should present an uniform distribution, a flat distribution between
-zero and 1. These are the two main diagnostics plot from DHARMa, one
-quantile-quantile plot that you expect that the residuals (black dots) should
-align with the diagnoal red line, and the other the residuals agains the fitted
-values, which we would expect a uniform distribution of them along the fitted
-values, reprsented by these 3 black horizontal lines. Now, let's check DHARMa
-residuals can detect dispersion problems in the data...
-:::
-
-## Detecting overdispersion {.smaller}
-
+## 3 causes of dispersion problems  {.smaller}
 
 ::::: columns
-::: {.column width="50%"}
+::: {.column width="33%"} 
+<p style="text-align: center;">**"Real" overdispersion:** </p>
+![](images/plot_overdispersion.png){fig-align="center" width="300"}
 
-Wrong model
-```{r, echo=T, eval=F}
-m <- glmmTMB(Abundance ~ Environment + (1|group),
-        family = poisson(), data = data)
-res <- simulateResiduals(m)
-plot(res)
-testDispersion(res)
-```
+<p style="text-align: center;"> Abundances vary more that expected by the model, in general. </p>
+:::
 
-```{r, echo=F, fig.width=8}
-par(mar=c(4,4,1,1))
-plot(overResWrong)
-testDispersion(overResWrong, plot=F) -> val
-```
-
-<p style="text-align: center;color: red;">Dispersion  = `r round(val$statistic,2)`, p-value = `r val$p.value`. </p>
+::: {.column width="33%"}
+<p style="text-align: center;">**Heteroscedasticity:**  </p>
 
 :::
 
-::: {.column width="50%"}
+::: {.column width="34%"}
+<p style="text-align: center;">**Zero-inflation:** </p>
 
 :::
 :::::
+
 
 
 ::: notes
-We start with the model we believe fits our your data, here I'll continue with the example of the species abundances being modeled by an enviromental variable. So we fit a poisson GLMM, we simulate the residuals with DHARMa and we plot the residuals. 
-This plot is quite different to what we saw before, right? We see many red colors for residual tests, that is significant departing from what is expected. the residuals are not aligned in the qq plot and the expected flat lines in the plot of the residuals agains the fitted values are not flat anymore 
+Let's start with the 3 main causes of having more or less variability in your data than expected by your model.
+Here I will focus on the overdipsersion problem, for simplicity, and use the example I showed before with the Poisson distribution. So we have the species abundances along an enviromental gradient. In green, we have the data behaving like a poisson distribution, so the species abundances increase with the gradient but there is no exta variability, then the fitted mean by the GLM model is the green line. 
+In red, I have a the datasets with larger variation than expected by the Poisson model. We see that the red points are more spread thant the green one. 
+This is what I'm calling here "real" overdispersion in contrast with the two other "apparent"overdispersion. Some would also call it Extra-Poisson variance and we could, for example, model,it with a Negative Binomial GLM.
 :::
 
-## Detecting overdispersion {.smaller}
-
+## 3 causes of dispersion problems {.smaller}
 
 ::::: columns
-::: {.column width="50%"}
+::: {.column width="33%"}
+<p style="text-align: center;">**"Real" overdispersion:** </p>
+![](images/plot_overdispersion.png){fig-align="center" width="300"}
 
-Wrong model
-```{r, echo=T, eval=F}
-m <- glmmTMB(Abundance ~ Environment + (1|group),
-        family = poisson(), data = data)
-res <- simulateResiduals(m)
-plot(res)
-testDispersion(res)
-```
-
-```{r, echo=F, fig.width=8}
-par(mar=c(4,4,1,1))
-plot(overResWrong)
-testDispersion(overResWrong, plot=F) -> val
-```
-
-<p style="text-align: center;color: red;">Dispersion  = `r round(val$statistic,2)`, p-value = `r val$p.value`. </p>
-
+<p style="text-align: center;"> Abundances vary more that expected by the model, in general.</p>
 :::
 
-::: {.column width="50%"}
-Solution 
-```{r, echo=T, eval=F}
-#| code-line-numbers: 2
-m <- glmmTMB(Abundance ~ Environment + (1|group),
-        family = nbinom2(), data = data)
-res <- simulateResiduals(m)
-plot(res)
-testDispersion(res)
-```
+::: {.column width="33%"}
+<p style="text-align: center;"> **Heteroscedasticity:**  </p>
+![](images/plot_heteroscedasticity.png){fig-align="center" width="300"}
 
-```{r, echo=F, fig.width=8}
-par(mar=c(4,4,1,1))
-plot(overResCorrect)
-testDispersion(overResCorrect, plot=F) -> val
-```
+<p style="text-align: center;"> Abundances variation increases with the environmental gradient. </p>
+:::
 
-<p style="text-align: center;">Dispersion  = `r round(val$statistic,2)`, p-value = `r val$p.value`. </p>
+::: {.column width="34%"}
+<p style="text-align: center;"> **Zero-inflation:** </p>
 
 :::
 :::::
 
-
-
-
-## Another overdispersion problem
-
-\
-
-What if...
-
-\
-
-<p style="text-align: center;"> the variability in the data increases/decreases with a specific variable? </p>
-
-\
-
-<p style="text-align: center; color: red;font-size: 55px"> **Heteroscedasticity** </p>
 
 
 ::: notes
-The overdispersion problem I showed before, that is when there is an overal variability in the data than expected by the mode, is easily solved by changing the distribution of the GLM, for example using a negativbe binomial. however, but problems can be more detailed
+Heteroscedasticity, is also possible in count data, and different from what we had before, the variability here is increasing with the environmental variable. So the "extra poisson variance has a different pattern, although you can't distinguish between those causes just by looking at the plot.
 :::
 
-## Detecting heteroscedasticity {.smaller}
-
-
-::::: columns
-::: {.column width="50%"}
-
-Wrong model
-```{r, echo=T, eval=F}
-m <- glmmTMB(Abundance ~ Environment + (1|group),
-        family = poisson(), data = data)
-res <- simulateResiduals(m)
-plotResiduals(res, form = data$Environment1,
-              absoluteDeviation = T)
-testDispersion(res)
-```
-
-```{r, echo=F, fig.height=3.5, fig.width=3.5}
-plotResiduals(heteroResWrong, form = heteroData$Environment1,
-              absoluteDeviation = T)
-testDispersion(heteroResWrong, plot=F) -> val
-```
-
-<p style="text-align: center;color: red;">Dispersion  = `r round(val$statistic,2)`, p-value = `r val$p.value`. </p>
-
-:::
-
-::: {.column width="50%"}
-
-:::
-:::::
-
-
-
-## Detecting heteroscedasticity {.smaller}
-
-
-::::: columns
-::: {.column width="50%"}
-
-Wrong model
-```{r, echo=T, eval=F}
-m <- glmmTMB(Abundance ~ Environment + (1|group),
-        family = poisson(), data = data)
-res <- simulateResiduals(m)
-plotResiduals(res, form = data$Environment1,
-              absoluteDeviation = T)
-testDispersion(res)
-```
-
-```{r, echo=F, fig.height=3.5, fig.width=3.5}
-plotResiduals(heteroResWrong, form = heteroData$Environment1,
-              absoluteDeviation = T)
-testDispersion(heteroResWrong, plot=F) -> val
-```
-
-<p style="text-align: center;color: red;">Dispersion  = `r round(val$statistic,2)`, p-value = `r val$p.value`. </p>
-
-:::
-
-::: {.column width="50%"}
-Solution 
-```{r, echo=T, eval=F}
-#| code-line-numbers: 2-3,5-6
-m <- glmmTMB(Abundance ~ Environment + (1|group),
-        dispformula = ~ Environment, # dispersion formula
-        family = nbinom2(), data = data) # negative binomial
-res <- simulateResiduals(m)
-plotResiduals(res, form = data$Environment1,
-              absoluteDeviation = T)
-testDispersion(res)
-```
-
-```{r, echo=F, fig.height=3.5, fig.width=3.5}
-plotResiduals(heteroResCorrect, form = heteroData$Environment1,
-              absoluteDeviation = T)
-testDispersion(heteroResCorrect, plot=F) -> val
-```
-
-<p style="text-align: center;"> Dispersion  = `r round(val$statistic,2)`, p-value = `r val$p.value`. </p>
-
-:::
-:::::
-
-
-## What if... 
-
-\
-
-<p style="text-align: center;"> You have more zeros than expected by the model??
- </p>
-
-\
-
-<p style="text-align: center; color: red;font-size: 55px"> **Zero-inflation** </p>
-
-::: notes
-it's not 100% a dispersion problem, it's more a distributional problem, but it's interaction with dispersion and often masking as a dispersion problem, i.e. you seem to see dispersion problems when it's actually zero-inflation.
-:::
-
-
-## Detecting zero-inflation {.smaller}
-
-::::: columns
-::: {.column width="50%"}
-
-Wrong model
-```{r, echo=T, eval=F}
-m <- glmmTMB(Abundance ~ Environment + (1|group),
-        family = poisson(), data = data)
-res <- simulateResiduals(m)
-plot(res)
-testZeroInflation(res)
-```
-
-```{r, echo=F, fig.width=8}
-par(mar=c(4,4,1,1))
-plot(zeroResWrong)
-testZeroInflation(zeroResWrong, plot=F) -> val
-```
-
-<p style="text-align: center;color: red;">Zero-inflation  = `r round(val$statistic,2)`, p-value = `r val$p.value`. </p>
-
-:::
-
-::: {.column width="50%"}
-
-:::
-:::::
-
-
-
-
-## Detecting zero-inflation {.smaller}
-
-
-::::: columns
-::: {.column width="50%"}
-
-Wrong model
-```{r, echo=T, eval=F}
-m <- glmmTMB(Abundance ~ Environment + (1|group),
-        family = poisson(), data = data)
-res <- simulateResiduals(m)
-plot(res)
-testZeroInflation(res)
-```
-
-```{r, echo=F, fig.width=8}
-par(mar=c(4,4,1,1))
-plot(zeroResWrong)
-testZeroInflation(zeroResWrong, plot=F) -> val
-```
-
-<p style="text-align: center;color: red;">Zero-inflation  = `r round(val$statistic,2)`, p-value = `r val$p.value`. </p>
-
-:::
-
-::: {.column width="50%"}
-Solution 
-```{r, echo=T, eval=F}
-#| code-line-numbers: 2-3,6
-m <- glmmTMB(Abundance ~ Environment + (1|group),
-        ziformula = ~ 1,  # zero-inflation formula
-        family = poisson(), data = data) 
-res <- simulateResiduals(m)
-plotResiduals(res)
-testZeroInflation(res)
-```
-
-```{r, echo=F, fig.width=8}
-par(mar=c(4,4,1,1))
-plot(zeroResCorrect)
-testZeroInflation(zeroResCorrect, plot=F)-> val
-```
-
-<p style="text-align: center;"> Zero-inflation   = `r round(val$statistic,2)`, p-value = `r val$p.value`. </p>
-
-:::
-:::::
 
 ## 3 causes of dispersion problems {.smaller}
 
@@ -526,6 +252,331 @@ For all this problems, we can see that the green Poisson model adjusted will fai
 
 
 
+## Consequences of dispersion problems {.smaller}
+
+\
+
+::::: columns
+::: {.column width="50%"}
+**OVERDISPERSION**
+
+-   Too small standard error / confidence intervals 
+
+-   Larger chance of false positive results
+
+\
+
+Wrong estimates, especialy if ignoring other processes (e.g. zero-inflation causes) in your data-generating process.
+
+
+\
+
+Missing the opportunity to learn more from your data. Ecological meanings for modeling unexpected variability.
+:::
+
+::: {.column width="50%"}
+![](images/plot_consequence_IC.png){fig-align="center" width="500"}
+:::
+:::::
+
+
+
+::: notes
+If you ignore these problems in your model, the most clear consequence is that you have estimated too small standard errors for your estimates, this means that you think you have lower uncertainty, and smaller confidence intervals, but in reality your data says the opposite. This increases the chance of the type I error, that would tell you you have an significant effect, but this doesn't exist. maybe that's why people prefer to ignore these problems when fitting model to data ?
+Sometimes, depending on the complexity of your model and data, you may also have wrong estimates, that is, you estimate the slope of the realtionship of the abundance with your environmental variable, but this is wrong, and you will predict very poorly from your data. Especially if you have zero-inflation processes behind your data.
+
+And what I really think is that, you are also ignoring how to learn more from your model, for example, if you find out that there is a variable that is increasing the variability in abundances, wouldn't it be a cool ecological result?
+:::
+
+
+##  {background-image="images/background.png"}
+
+\
+
+![](images/Dharma_Wheel.png){fig-align="center" width="50"}
+
+\
+
+<p style="text-align: center; font-size: 60px;"> Detecting dispersion problems with `DHARMa` </p>
+
+\
+
+\
+
+::: notes
+Ok so I showed you the problems and showed also that the patterns sometimes are not easy to see from the data itself. We have to fit a model and search for the problems in the residuals. And here it comes the DHARMa package and the ways you can detect some of the dispersion problems.
+:::
+
+
+## Residual diagnostics with `DHARMa` {.smaller}
+
+-   Scaled quantile residuals -\> Simulating from the model
+
+-   Residuals between 0 and 1 for ANY model complexity or distribution
+
+-   Interpreted the SAME way:
+
+```{r, fig.width=8}
+data <- createData(randomEffectVariance = 0)
+res <- simulateResiduals(glm(observedResponse ~ Environment1, data=data,
+                           family="poisson"))
+par(mfrow = c(1,2))
+plotQQunif(res, testUniformity = F, testOutliers = F, testDispersion = F)
+plotResiduals(res)
+```
+
+::: notes
+The DHARMa approach is to generate a specific type of residuals, the scale
+quantile residuals, by simulating many new datasets from your model. The advantange of these residuals is that it is standardized between 0 and 1 for any distribution and model
+complexity, and they should be interpreted the same way. That is, if your model
+is correctly specified, that means you have the data generating process, the
+residuals should present an uniform distribution, a flat distribution between
+zero and 1. These are the two main diagnostics plot from DHARMa, one
+quantile-quantile plot that you expect that the residuals (black dots) should
+align with the diagnoal red line, and the other the residuals agains the fitted
+values, which we would expect a uniform distribution of them along the fitted
+values, reprsented by these 3 black horizontal lines. Now, let's check DHARMa
+residuals can detect dispersion problems in the data...
+:::
+
+## Detecting "real" overdispersion {.smaller}
+
+
+::::: columns
+::: {.column width="50%"}
+
+Wrong model
+```{r, echo=T, eval=F}
+m <- glmmTMB(observedResponse ~ Environment1 + (1|group),
+        family = poisson(), data = overData)
+res <- simulateResiduals(m)
+plot(res)
+testDispersion(res)
+```
+
+```{r, echo=F, fig.width=8}
+par(mar=c(3,3,1,1))
+plot(overResWrong)
+testDispersion(overResWrong, plot=F) -> val
+```
+
+<p style="text-align: center;color: red;">Dispersion  = `r round(val$statistic,2)`, p-value = `r val$p.value`. </p>
+
+:::
+
+::: {.column width="50%"}
+
+:::
+:::::
+
+## Detecting "real" overdispersion {.smaller}
+
+
+::::: columns
+::: {.column width="50%"}
+
+Wrong model
+```{r, echo=T, eval=F}
+m <- glmmTMB(observedResponse ~ Environment1 + (1|group),
+        family = poisson(), data = overData)
+res <- simulateResiduals(m)
+plot(res)
+testDispersion(res)
+```
+
+```{r, echo=F, fig.width=8}
+par(mar=c(3,3,1,1))
+plot(overResWrong)
+testDispersion(overResWrong, plot=F) -> val
+```
+
+<p style="text-align: center;color: red;">Dispersion  = `r round(val$statistic,2)`, p-value = `r val$p.value`. </p>
+
+:::
+
+::: {.column width="50%"}
+Solution 
+```{r, echo=T, eval=F}
+m <- glmmTMB(observedResponse ~ Environment1 + (1|group),
+        family = nbinom2(), data = overData)
+res <- simulateResiduals(m)
+plot(res)
+testDispersion(res)
+```
+
+```{r, echo=F, fig.width=8}
+par(mar=c(3,3,1,1))
+plot(overResCorrect)
+testDispersion(overResCorrect, plot=F) -> val
+```
+
+<p style="text-align: center;">Dispersion  = `r round(val$statistic,2)`, p-value = `r val$p.value`. </p>
+
+:::
+:::::
+
+## Detecting heteroscedasticity {.smaller}
+
+
+::::: columns
+::: {.column width="50%"}
+
+Wrong model
+```{r, echo=T, eval=F}
+m <- glmmTMB(observedResponse ~ Environment1 + (1|group),
+        family = poisson(), data = overData)
+res <- simulateResiduals(m)
+plotResiduals(res, form = data$Environment1,
+              absoluteDeviation = T)
+testDispersion(res)
+```
+
+```{r, echo=F, fig.height=3.5, fig.width=3.5}
+plotResiduals(heteroResWrong, form = heteroData$Environment1,
+              absoluteDeviation = T)
+testDispersion(heteroResWrong, plot=F) -> val
+```
+
+<p style="text-align: center;color: red;">Dispersion  = `r round(val$statistic,2)`, p-value = `r val$p.value`. </p>
+
+:::
+
+::: {.column width="50%"}
+
+:::
+:::::
+
+
+
+## Detecting heteroscedasticity {.smaller}
+
+
+::::: columns
+::: {.column width="50%"}
+
+Wrong model
+```{r, echo=T, eval=F}
+m <- glmmTMB(observedResponse ~ Environment1 + (1|group),
+        family = poisson(), data = overData)
+res <- simulateResiduals(m)
+plotResiduals(res, form = data$Environment1,
+              absoluteDeviation = T)
+testDispersion(res)
+```
+
+```{r, echo=F, fig.height=3.5, fig.width=3.5}
+plotResiduals(heteroResWrong, form = heteroData$Environment1,
+              absoluteDeviation = T)
+testDispersion(heteroResWrong, plot=F) -> val
+```
+
+<p style="text-align: center;color: red;">Dispersion  = `r round(val$statistic,2)`, p-value = `r val$p.value`. </p>
+
+:::
+
+::: {.column width="50%"}
+Solution 
+```{r, echo=T, eval=F}
+m <- glmmTMB(observedResponse ~ Environment1 + (1|group),
+             dispformula = ~ Environment1, # dispersion formula
+        family = nbinom2(), data = data) # but needs negative binomial
+res <- simulateResiduals(m)
+plotResiduals(res, form = data$Environment1,
+              absoluteDeviation = T)
+testDispersion(res)
+```
+
+```{r, echo=F, fig.height=3.5, fig.width=3.5}
+plotResiduals(heteroResCorrect, form = heteroData$Environment1,
+              absoluteDeviation = T)
+testDispersion(heteroResCorrect, plot=F) -> val
+```
+
+<p style="text-align: center;"> Dispersion  = `r round(val$statistic,2)`, p-value = `r val$p.value`. </p>
+
+:::
+:::::
+
+
+## Detecting zero-inflation {.smaller}
+
+
+::::: columns
+::: {.column width="50%"}
+
+Wrong model
+```{r, echo=T, eval=F}
+m <- glmmTMB(observedResponse ~ Environment1 + (1|group),
+        family = poisson(), data = overData)
+res <- simulateResiduals(m)
+plot(res)
+testZeroInflation(res)
+```
+
+```{r, echo=F, fig.width=8}
+par(mar=c(3,3,1,1))
+plot(zeroResWrong)
+testZeroInflation(zeroResWrong, plot=F) -> val
+```
+
+<p style="text-align: center;color: red;">Zero-inflation  = `r round(val$statistic,2)`, p-value = `r val$p.value`. </p>
+
+:::
+
+::: {.column width="50%"}
+
+:::
+:::::
+
+
+
+
+## Detecting zero-inflation {.smaller}
+
+
+::::: columns
+::: {.column width="50%"}
+
+Wrong model
+```{r, echo=T, eval=F}
+m <- glmmTMB(observedResponse ~ Environment1 + (1|group),
+        family = poisson(), data = overData)
+res <- simulateResiduals(m)
+plot(res)
+testZeroInflation(res)
+```
+
+```{r, echo=F, fig.width=8}
+par(mar=c(3,3,1,1))
+plot(zeroResWrong)
+testZeroInflation(zeroResWrong, plot=F) -> val
+```
+
+<p style="text-align: center;color: red;">Zero-inflation  = `r round(val$statistic,2)`, p-value = `r val$p.value`. </p>
+
+:::
+
+::: {.column width="50%"}
+Solution 
+```{r, echo=T, eval=F}
+m <- glmmTMB(observedResponse ~ Environment1 + (1|group),
+            ziformula = ~ 1,  # zero-inflation formula
+        family = poisson(), data = data) 
+res <- simulateResiduals(m)
+plotResiduals(res)
+testZeroInflation(res)
+```
+
+```{r, echo=F, fig.width=8}
+par(mar=c(3,3,1,1))
+plot(zeroResCorrect)
+testZeroInflation(zeroResCorrect, plot=F)-> val
+```
+
+<p style="text-align: center;"> Zero-inflation   = `r round(val$statistic,2)`, p-value = `r val$p.value`. </p>
+
+:::
+:::::
 
 
 
@@ -546,17 +597,14 @@ For all this problems, we can see that the green Poisson model adjusted will fai
     compare their fit (e.g. AIC, LRT) and residuals diagnostics.
     
 
-<p style="text-align: center; font-size: 44px;"> `DHARMa` + `glmmTMB` </p>
-
-::: notes
 Don't always assume the most complex/complicated model is the correct one!
-:::
+
 
 ## Conclusion {.smaller}
 
 \
 
--   There are many causes of dispersion problems in GLMMs. To ignore it may lead fo false conclusions
+-   There are many causes of dispersion problems in GLMMs
 
 \
 
@@ -566,11 +614,6 @@ Don't always assume the most complex/complicated model is the correct one!
 
 -   Address the problem with adequate models, e.g, `glmmTMB`
 
-\
-
-
-<p style="text-align: center; font-size: 44px; color: red;"> **Can you trust your model, now?** </p>
-
 ::: notes
 There are many other types of problems, especially talking about GLMMs, where
 the issue may not just be at the distribuion/observation level but also at the
@@ -579,7 +622,6 @@ random effects level.
 
 ## Take-home message {.smaller}
 
-\
 
 -   Models should ALWAYS be checked: residual diagnostics!
 
@@ -613,5 +655,10 @@ Comming soon:
 
 \
 
-<p style="text-align: center; font-size: 20px;"> Thanks to Max Pichler and the Theoretical Ecology Lab group </p>
+<p style="text-align: center; font-size: 20px;">Acknowledgements to Florian Hartig, Max Pichler, and the Theoretical Ecology Lab group </p>
 
+
+::: notes
+Talvez um QR CODE para o link dessa apresentação - ou htlm de exemplo no
+github - devo coloar no github do DHARMa, em material didático?
+:::
