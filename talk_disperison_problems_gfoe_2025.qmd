@@ -2,7 +2,7 @@
 title: "Detecting dispersion problems in GLMMs"
 title-slide-attributes:
     data-background-image: images/background.png
-    data-notes: Hello everyone, thanks for coming, here I'll talk about a problem that many of you might have faced but maybe didn't know much about it, which is detecting dispersion problems in generalized linear models and the mixed-effects extension.
+    data-notes: Hello everyone, thanks for coming, here I'll talk about a problem that many of you might have faced but maybe didn't know much about it, which is detecting dispersion problems in generalized linear models and the mixed-effects models.
 author:
   - name: Melina de Souza Leite & Florian Hartig
     id: Post Doc
@@ -128,10 +128,10 @@ The question I start my presenteation is: can you trust your model?
 
 
 ::: notes
-One very important issue with model diagnostics is to detect dispersion problems, and the most common disperison problem is OVERDISPERSION, whe the data has more variability than expected by the model.
+One very important issue with model diagnostics is to detect dispersion problems, and the most common dispersion problem is OVERDISPERSION, where the data has more variability than expected by the model.
 If you ignore it, the most clear consequence is that you have estimated too small standard errors, this means that you think you have lower uncertainty, and smaller confidence intervals, but in reality your data says the opposite. This increases the chance of false positive results, and we saw the consequences of it for the scientific community.
 
-Here I'm showing a very common problem of a count data, for example the abundance of a species along a environmental gradient, that is modeled using a Poisson distribution. However, this count data has more variability than expected by the Poisson. So when we model it with a Poisson GLM, in red, we think we have larger confidence in the estimates, but this is wrong. In green, we have a model with another distribution, here negative binomial, that takes into account this extra variability in the count data.
+Here I'm showing a very common problem of a count data, for example the abundance of a species along a environmental gradient. However, this data has more variability than expected by the Poisson GLM I'm trying to fit. So, when we model it with a Poisson GLM, we will have this very narrow confidence interval of the estimates in red, and we may think this model is great but it is the other way around. In green, we have a model with another distribution, here negative binomial, that takes into account this extra variability in the count data and then provide a better model for the data at hand.
 :::
 
 
@@ -193,16 +193,10 @@ plotResiduals(res)
 
 ::: notes
 The DHARMa approach is to generate a specific type of residuals, the scale
-quantile residuals, by simulating many new datasets from your model. The advantange of these residuals is that it is standardized between 0 and 1 for any distribution and model
-complexity, and they should be interpreted the same way. That is, if your model
-is correctly specified, that means you have the data generating process, the
-residuals should present an uniform distribution, a flat distribution between
-zero and 1. These are the two main diagnostics plot from DHARMa, one
-quantile-quantile plot that you expect that the residuals (black dots) should
-align with the diagnoal red line, and the other the residuals agains the fitted
-values, which we would expect a uniform distribution of them along the fitted
-values, reprsented by these 3 black horizontal lines. Now, let's check DHARMa
-residuals can detect dispersion problems in the data...
+quantile residuals, by simulating many new datasets from your model. The advantange of these residuals is that it is standardized between 0 and 1 for any distribution and model complexity, and they should be interpreted the same way. That is, if your model is good the residuals should present an uniform distribution, a flat distribution between zero and 1. 
+These are the two main diagnostics plot from DHARMa, one quantile-quantile plot that you expect that the residuals (black dots) should align with the diagonal red line, and the other the residuals agains the fitted values, which we would expect a uniform distribution of them along the fitted
+values, reprsented by these 3 black horizontal lines. 
+Now, let's check if DHARMa residuals can detect dispersion problems in the data...
 :::
 
 ## Detecting overdispersion {.smaller}
@@ -238,7 +232,8 @@ testDispersion(overResWrong, plot=F) -> val
 
 ::: notes
 We start with the model we believe fits our your data, here I'll continue with the example of the species abundances being modeled by an enviromental variable. So we fit a poisson GLMM, we simulate the residuals with DHARMa and we plot the residuals. 
-This plot is quite different to what we saw before, right? We see many red colors for residual tests, that is significant departing from what is expected. the residuals are not aligned in the qq plot and the expected flat lines in the plot of the residuals agains the fitted values are not flat anymore 
+This plot is quite different to what we saw before, right? We see many red colors for residual tests, that is significant departing from what is expected. the residuals are not aligned in the qq plot and the expected flat lines in the plot of the residuals agains the fitted values are not flat anymore.
+DHARMa has a function to test for overdispersion, and we see here that it is significant and high. the dispersion parameter should be around 1 and here is larger than 5. Indicating high overdispersion
 :::
 
 ## Detecting overdispersion {.smaller}
@@ -288,7 +283,9 @@ testDispersion(overResCorrect, plot=F) -> val
 :::
 :::::
 
-
+::: notes
+A possible solution I have already presented is to model it with the negative binomial distribution, which can handle the extra variability in the data. Then we we model it with glmmTMB and look at the DHARMa residuals, we find that everything is good again, residuals rare flat and don't show any pattern!
+:::
 
 
 ## Another overdispersion problem
@@ -307,7 +304,9 @@ What if...
 
 
 ::: notes
-The overdispersion problem I showed before, that is when there is an overal variability in the data than expected by the mode, is easily solved by changing the distribution of the GLM, for example using a negativbe binomial. however, but problems can be more detailed
+Howver, life is not that simple. 
+We may also see in our data that the variability increases or decreases with a variable. That is, there is something causing that variability to change. This is called heteroscedasticity, and it may be also quite common in GLMs. 
+Let's check the residuals in this case
 :::
 
 ## Detecting heteroscedasticity {.smaller}
@@ -341,7 +340,10 @@ testDispersion(heteroResWrong, plot=F) -> val
 :::
 :::::
 
+::: notes
+Here I have the very same wrong model, and now I'm showing you another plot, which is the DHARMa residuals against the predictor variable, in our case the enviromental gradient. This plot is particularly good to detect heteroscedasticity - because we search for patterns in the residuals agains our predictors.
 
+:::
 
 ## Detecting heteroscedasticity {.smaller}
 
@@ -393,6 +395,9 @@ testDispersion(heteroResCorrect, plot=F) -> val
 :::
 :::::
 
+::: notes
+For heteroscedasticity, a good solution is to model the variation, in glmmTMB we can do it using this argument `dispformula` to say which variable we believe is creating heteroscedasticity. Now, applying that and checking the residuals, we can see that the pattern is over and that the dispersion test is also smaller and nonsignificant.
+:::
 
 ## What if... 
 
@@ -406,7 +411,8 @@ testDispersion(heteroResCorrect, plot=F) -> val
 <p style="text-align: center; color: red;font-size: 55px"> **Zero-inflation** </p>
 
 ::: notes
-it's not 100% a dispersion problem, it's more a distributional problem, but it's interaction with dispersion and often masking as a dispersion problem, i.e. you seem to see dispersion problems when it's actually zero-inflation.
+Well, there is another problem that may create an apparent overdispersion. this is the exces of zeros in your data, given your model.  
+Let's have a look at the residuals of a model ignoring the zero-inflation...
 :::
 
 
@@ -439,8 +445,10 @@ testZeroInflation(zeroResWrong, plot=F) -> val
 :::
 :::::
 
-
-
+::: notes
+Well, not good! 
+here I want to highlight the DHARMa function to test for zero-inflation. Like the test for overdispersion, a good value would be 1, and we can see here is larger than 5!
+:::
 
 ## Detecting zero-inflation {.smaller}
 
@@ -490,6 +498,11 @@ testZeroInflation(zeroResCorrect, plot=F)-> val
 :::
 :::::
 
+::: notes
+Again, using glmmTMB we can also model the excess of zeros, using the argumento ziformula. In this example I just said that my data has more zeros than expected by the poisson. and by doing that I have a model that has very nice DHARMa residuals!
+no pattern, no sing of zero inflation anymore!
+:::
+
 ## 3 causes of dispersion problems {.smaller}
 
 ::::: columns
@@ -519,9 +532,8 @@ testZeroInflation(zeroResCorrect, plot=F)-> val
 
 
 ::: notes
-The last case I'm talking about is very common in observational/ field collected data, is the presence of more zeros thant expected by the model. Which means you may have more than one process going on in your system, one for the presence/absence of the species, another for their abundances, once they are present.
-
-For all this problems, we can see that the green Poisson model adjusted will fail in predicting observations that are too far, given that there are extra variability that you are ignoring. If you choose to ignore it, there will be consequences...
+Now we know a bit about the 3 main causes of overdispersion problems, and how we can detect and model it. 
+For all this problems, we can see that the green Poisson model adjusted will fail in predicting observations that are too far, given that there are extra variability that you are ignoring. If you choose to ignore it, we know the consequences.
 :::
 
 
